@@ -1,6 +1,9 @@
 using DaemonMode
 using Test
+using Sockets
 
 @testset "DaemonMode.jl" begin
-    # Write your own tests here.
+    task = @async serve()
+    sleep(1)
+    runfile("hello.jl")
 end
