@@ -1,4 +1,4 @@
 ```@meta
-CurrentModule = DaemonMode
+CurrentModule = DaemonMode.jl
 ```
 
