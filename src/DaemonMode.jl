@@ -19,6 +19,13 @@ function serve()
         sock = accept(server)
         dir = readline(sock)
         fname = readline(sock)
+        args_str = readline(sock)
+        args = split(args_str, " ")
+
+        for arg in args
+            push!(ARGS, arg)
+        end
+
         first_time .= true
         cd(current)
 
@@ -37,7 +44,7 @@ function serve()
 
         try
             cd(dir)
-            include(fname)
+            include(joinpath(dir, fname))
         catch e
             if isa(e, LoadError)
                 if :msg in propertynames(e.error)
@@ -60,10 +67,16 @@ function serve()
         end
 
         println(sock, "")
+
+        while !isempty(ARGS)
+            pop!(ARGS)
+        end
+
+
     end
 end
 
-function runfile(fname::AbstractString)
+function runfile(fname::AbstractString, args=String[])
     dir = dirname(fname)
 
     if isempty(dir)
@@ -76,6 +89,7 @@ function runfile(fname::AbstractString)
         sock = Sockets.connect(PORT)
         println(sock, pwd())
         println(sock, fcompletename)
+        println(sock, join(args, " "))
         line = readline(sock)
 
         while (!isempty(line))
@@ -89,7 +103,10 @@ function runfile(fname::AbstractString)
 end
 
 function runargs()
-    runfile(only(ARGS))
+    if isempty(ARGS)
+        println(file=stderr, "Error: missing filename")
+    end
+    runfile(ARGS[1], ARGS[2:end])
 end
 
 export serve
