@@ -1,11 +1,14 @@
 module DaemonMode
 
 using Sockets
+import Base.isinteractive
 
 const PORT = 3000
 
 function add_packages(fname::AbstractString)
-end 
+end
+
+isinteractive() = true
 
 function serve()
     server = Sockets.listen(Sockets.localhost, PORT)
