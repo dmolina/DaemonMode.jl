@@ -80,7 +80,7 @@ function serve()
     end
 end
 
-function runfile(fname::AbstractString, args=String[])
+function runfile(fname::AbstractString; args=String[], output=stdout)
     global token_end
     dir = dirname(fname)
 
@@ -98,7 +98,7 @@ function runfile(fname::AbstractString, args=String[])
         line = readline(sock)
 
         while (line != token_end)
-            println(line)
+            println(output, line)
             line = readline(sock)
         end
     catch e
@@ -111,7 +111,7 @@ function runargs()
     if isempty(ARGS)
         println(file=stderr, "Error: missing filename")
     end
-    runfile(ARGS[1], ARGS[2:end])
+    runfile(ARGS[1], args=ARGS[2:end])
 end
 
 export serve
