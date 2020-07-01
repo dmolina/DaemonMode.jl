@@ -59,6 +59,10 @@ function serve()
             end
         end
 
+        while !isempty(ARGS)
+            pop!(ARGS)
+        end
+
         redirect_stdout(old)
         redirect_stderr(old_error)
 
@@ -71,8 +75,6 @@ function serve()
         while !isempty(ARGS)
             pop!(ARGS)
         end
-
-
     end
 end
 
