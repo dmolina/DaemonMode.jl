@@ -6,19 +6,11 @@ Status](https://travis-ci.com/dmolina/DaemonMode.jl.svg?branch=master)](https://
 
 # Introduction
 
-Julia is a great language, but the Just-in-Time compiler implies that loading a
-package could takes a considerable time, this is called the _first plot
-problem_. 
+Julia is a great language, but the Just-in-Time compiler implies that loading a package could takes a considerable time, this is called the _first plot problem_.
 
-It is true that this time is only required for the first time (and there are
-options, like using and the package
-[Revise](https://github.com/timholy/Revise.jl)). However, it is a great
-disadvantage when we want to use Julia to create small scripts.
+It is true that this time is only required for the first time (and there are options, like using and the package [Revise](https://github.com/timholy/Revise.jl)). However, it is a great disadvantage when we want to use Julia to create small scripts.
 
-This package solve that problem. Inspired in the daemon-mode of Emacs, this
-package create a server/client model. This allow julia to run scripts a lot
-quickly scripts in Julia, because the package is maintained in memory between
-the run of several scripts (or run the same script several times).
+This package solve that problem. Inspired in the daemon-mode of Emacs, this package create a server/client model. This allow julia to run scripts a lot quickly scripts in Julia, because the package is maintained in memory between the run of several scripts (or run the same script several times).
 
 # Usage
 
@@ -28,8 +20,7 @@ the run of several scripts (or run the same script several times).
   julia -e 'using DaemonMode; serve()'
   ```
 
-- A client, that send to the server the file to run, and return the output
-  obtained.
+- A client, that send to the server the file to run, and return the output obtained.
   
   ```julia
   julia -e 'using DaemonMode; runargs()' program.jl <arguments>
@@ -40,18 +31,15 @@ the run of several scripts (or run the same script several times).
   alias juliaclient='julia -e "using DaemonMode; runargs()"'
   ```
   
-  then, instead of `julia program.jl` you can do `juliaclient program.jl`. The
-  output should be the same, but with a lot less time.
+  then, instead of `julia program.jl` you can do `juliaclient program.jl`. The output should be the same, but with a lot less time.
   
 # Process
 
 The process is the following:
 
-1. The client process sends the program *program.jl* with the required arguments
-   to the server.
+1. The client process sends the program *program.jl* with the required arguments to the server.
    
-2. The server receives the program name, and run it, returning the output to the
-   client process. 
+2. The server receives the program name, and run it, returning the output to the client process.
 
 3. The client process receives the output and show it to the console.
 
@@ -85,9 +73,7 @@ user	0m18.670s
 sys	    0m0.476s
 ```
 
-Only loading the CSV, DataFrames, and reading a simple file takes 18 seconds in
-my computer (I accept donnations :-)). Every time that you run the program is
-going to take these 18 seconds. 
+Only loading the CSV, DataFrames, and reading a simple file takes 18 seconds in my computer (I accept donnations :-)). Every time that you run the program is going to take these 18 seconds.
 
 using DaemonMode:
 
@@ -124,11 +110,11 @@ user	0m0.336s
 sys	0m0.317s
 ```
 
-A reduction from 18s to 0.3s, the **next runs only take a 2% of the original time*. 
+A reduction from 18s to 0.3s, the **next runs only take a 2% of the original time*.
 
 Also, you can change the file and the performance is maintained:
 
-*test2.jl*: 
+*test2.jl*:
 
 ```julia
 using CSV, DataFrames
@@ -162,15 +148,20 @@ sys	0m0.300s
 
 # Features
 
-- [X] Performance, because the packages is maintained in memory. This is specially
-  interesting with common external packages like CSV.jl, DataFrames, ...
+- [X] Performance, because the packages is maintained in memory. This is specially interesting with common external packages like CSV.jl, DataFrames, ...
 
 - [X] The code is run using the current directory as working directory.
 
 - [X] Robust, if the file have an error, the server continue working.
 
-- [X] It accept parameters without problem. 
+- [X] It accept parameters without problem.
+
+* TODO
 
 - [ ] Update isinteractive() to say that the run is run in a interactive way.
 
 - [ ] Automatically installation of required packages.
+
+- [ ] Multi-threading version.
+
+- [ ] Run in multiple modules to avoid conflict of names.
