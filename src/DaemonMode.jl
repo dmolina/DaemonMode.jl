@@ -9,20 +9,41 @@ end
 
 function serve()
     server = Sockets.listen(Sockets.localhost, PORT)
-    (out, old) = redirect_stdout()
+    quit = false
 
-    while true
+    while !quit
         sock = accept(server)
+        (out, old) = redirect_stdout()
+        (err, olderror) = redirect_stderr()
         fname = readline(sock)
-        include(fname)
-        data = readline(out)
-        println(sock, data)
+
+        if (fname == "exit()")
+            println(sock, "")
+            sleep(1)
+            quit = true
+            continue
+        end
+
+        try
+            include(fname)
+            data = readline(out)
+            redirect_stdout(old)
+            redirect_stderr(olderror)
+            println(sock, data)
+        catch e
+            redirect_stdout(old)
+            redirect_stderr(olderror)
+            println("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
+            println(sock, err)
+        end
+
         println(sock, "")
 
         # for line in readlines(out)
         #     println(line)
         #     println(sock, line)
         # end
+        # redirect_stderr(err)
     end
 end
 
