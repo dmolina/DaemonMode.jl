@@ -8,10 +8,12 @@ function add_packages(fname::AbstractString)
 end
 
 const first_time = [true]
+const token_end = "DaemonMode::Exit"
 
 function serve()
     server = Sockets.listen(Sockets.localhost, PORT)
     global first_time
+    global token_end
     quit = false
     current = pwd()
 
@@ -30,7 +32,7 @@ function serve()
         cd(current)
 
         if (fname == "exit()")
-            println(sock, "")
+            println(sock, token_end)
             sleep(1)
             quit = true
             continue
@@ -70,7 +72,7 @@ function serve()
             println(sock, error)
         end
 
-        println(sock, "")
+        println(sock, token_end)
 
         while !isempty(ARGS)
             pop!(ARGS)
@@ -79,6 +81,7 @@ function serve()
 end
 
 function runfile(fname::AbstractString, args=String[])
+    global token_end
     dir = dirname(fname)
 
     if isempty(dir)
@@ -94,7 +97,7 @@ function runfile(fname::AbstractString, args=String[])
         println(sock, join(args, " "))
         line = readline(sock)
 
-        while (!isempty(line))
+        while (line != token_end)
             println(line)
             line = readline(sock)
         end
