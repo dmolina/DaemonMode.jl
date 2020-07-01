@@ -8,15 +8,28 @@ const PORT = 3000
 function add_packages(fname::AbstractString)
 end
 
-isinteractive() = true
+const first_time = [true]
+
+function isinteractive()
+    global first_time
+
+    if first_time[1]
+        first_time .= false
+        return true
+    else
+        return false
+    end
+end
 
 function serve()
     server = Sockets.listen(Sockets.localhost, PORT)
+    global first_time
     quit = false
 
     while !quit
         sock = accept(server)
         fname = readline(sock)
+        first_time .= true
 
         if (fname == "exit()")
             println(sock, "")
