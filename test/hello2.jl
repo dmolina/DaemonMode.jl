@@ -1,2 +1,3 @@
 println("Hello, World")
-println("Bye, World")
+println()
+println("Bye, World!")
