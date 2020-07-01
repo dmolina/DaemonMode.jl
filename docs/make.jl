@@ -17,5 +17,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/dmolina/MoodleQuestions.jl",
+    repo="github.com/dmolina/DaemonMode.jl",
 )
