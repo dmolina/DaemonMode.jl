@@ -1,7 +1,6 @@
 module DaemonMode
 
 using Sockets
-import Base.isinteractive
 
 const PORT = 3000
 
@@ -9,17 +8,6 @@ function add_packages(fname::AbstractString)
 end
 
 const first_time = [true]
-
-function isinteractive()
-    global first_time
-
-    if first_time[1]
-        first_time .= false
-        return true
-    else
-        return false
-    end
-end
 
 function serve()
     server = Sockets.listen(Sockets.localhost, PORT)
