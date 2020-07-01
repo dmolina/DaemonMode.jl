@@ -13,8 +13,6 @@ function serve()
 
     while !quit
         sock = accept(server)
-        (out, old) = redirect_stdout()
-        (err, olderror) = redirect_stderr()
         fname = readline(sock)
 
         if (fname == "exit()")
@@ -24,26 +22,36 @@ function serve()
             continue
         end
 
+        (_, old) = redirect_stdout()
+        redirect_stdout(sock)
+        (_, old_error) = redirect_stderr()
+        redirect_stderr(sock)
+        error = ""
+
         try
             include(fname)
-            data = readline(out)
-            redirect_stdout(old)
-            redirect_stderr(olderror)
-            println(sock, data)
         catch e
-            redirect_stdout(old)
-            redirect_stderr(olderror)
-            println("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
-            println(sock, err)
+            if isa(e, LoadError)
+                if :msg in propertynames(e.error)
+                    error_msg = e.error.msg
+                else
+                    error_msg = "$e.error"
+                end
+
+                error = "ERROR in line $(e.line): '$(error_msg)'"
+            else
+                error = "ERROR: could not open file '$fname'"
+            end
+        end
+
+        redirect_stdout(old)
+        redirect_stderr(old_error)
+
+        if !isempty(error)
+            println(sock, error)
         end
 
         println(sock, "")
-
-        # for line in readlines(out)
-        #     println(line)
-        #     println(sock, line)
-        # end
-        # redirect_stderr(err)
     end
 end
 
