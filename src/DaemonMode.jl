@@ -25,11 +25,14 @@ function serve()
     server = Sockets.listen(Sockets.localhost, PORT)
     global first_time
     quit = false
+    current = pwd()
 
     while !quit
         sock = accept(server)
+        dir = readline(sock)
         fname = readline(sock)
         first_time .= true
+        cd(current)
 
         if (fname == "exit()")
             println(sock, "")
@@ -45,6 +48,7 @@ function serve()
         error = ""
 
         try
+            cd(dir)
             include(fname)
         catch e
             if isa(e, LoadError)
@@ -82,6 +86,7 @@ function runfile(fname::AbstractString)
 
     try
         sock = Sockets.connect(PORT)
+        println(sock, pwd())
         println(sock, fcompletename)
         line = readline(sock)
 
