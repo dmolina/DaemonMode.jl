@@ -5,12 +5,14 @@ using Sockets
 @testset "Start Server" begin
     @test_throws Base.IOError connect(3000)
     task = @async serve()
+    sleep(1)
     sendExitCode()
     wait(task)
 end
 
 @testset "runFile" begin
     task = @async serve()
+    sleep(1)
     buffer = IOBuffer()
     files = ["hello.jl", "hello2.jl"]
     outputs = ["Hello, World!\n", "Hello, World\n\nBye, World!\n"]
@@ -28,6 +30,7 @@ end
 
 @testset "runExpr" begin
     task = @async serve()
+    sleep(1)
     buffer = IOBuffer()
     expr = "x = 3 ; for i = 1:x ; println(i) ; end"
     runexpr(expr, output=buffer)

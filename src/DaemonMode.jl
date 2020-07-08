@@ -103,7 +103,7 @@ function serverRunExpr(sock)
     empty!(ARGS)
 end
 
-function runexpr(expr::AbstractString, output = stdout, port = PORT)
+function runexpr(expr::AbstractString ; output = stdout, port = PORT)
     try
         sock = Sockets.connect(port)
         println(sock, "runExpr()")
@@ -121,7 +121,7 @@ function runexpr(expr::AbstractString, output = stdout, port = PORT)
     end
 end
 
-function runfile(fname::AbstractString; args=String[], port=port, output=stdout)
+function runfile(fname::AbstractString; args=String[], port = PORT, output=stdout)
     dir = dirname(fname)
 
     if isempty(dir)
