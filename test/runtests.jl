@@ -3,17 +3,14 @@ using Test
 using Sockets
 
 @testset "Start Server" begin
-    (out, old) = redirect_stderr()
     @test_throws Base.IOError connect(3000)
-    redirect_stderr(old)
-    task = Threads.@spawn serve()
-    runfile("exit()")
-    sleep(1)
+    task = @async serve()
+    sendExitCode()
+    wait(task)
 end
 
-@testset "Hello" begin
-    task = Threads.@spawn serve()
-    sleep(1)
+@testset "runFile" begin
+    task = @async serve()
     buffer = IOBuffer()
     files = ["hello.jl", "hello2.jl"]
     outputs = ["Hello, World!\n", "Hello, World\n\nBye, World!\n"]
@@ -24,6 +21,18 @@ end
         output = String(take!(buffer))
         @test output == out
     end
-    runfile("exit()")
-    sleep(1)
+
+    sendExitCode()
+    wait(task)
+end
+
+@testset "runExpr" begin
+    task = @async serve()
+    buffer = IOBuffer()
+    expr = "x = 3 ; for i = 1:x ; println(i) ; end"
+    runexpr(expr, output=buffer)
+    output = String(take!(buffer))
+    @test output == "1\n2\n3\n"
+    sendExitCode()
+    wait(task)
 end

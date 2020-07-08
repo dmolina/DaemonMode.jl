@@ -21,26 +21,26 @@ function serve(port=PORT)
         sock = accept(server)
         mode = readline(sock)
         
-        (_, old) = redirect_stdout()
-        redirect_stdout(sock)
-        (_, old_error) = redirect_stderr()
-        redirect_stderr(sock)
+        redirect_stdout(sock) do
+            redirect_stderr(sock) do
+        
+                if mode == "runFile()"
+                    serverRunFile(sock)
+                elseif mode == "runExpr()"
+                    serverRunExpr(sock)
+                elseif mode == "exit()"
+                    println(sock, token_end)
+                    sleep(1)
+                    quit = true
+                else
+                    println(sock, "Error, unrecognised mode, expected (\"runFile()\", \"runExpr()\" or \"exit()\", but received \"$mode\"")
+                end
 
-        if mode == "runFile()"
-            serverRunFile(sock)
-        elseif mode == "runExpr()"
-            serverRunExpr(sock)
-        elseif mode == "exit()"
-            println(sock, token_end)
-            sleep(1)
-            quit = true
-        else
-            println(sock, "Error, unrecognised mode, expected (\"runFile()\", \"runExpr()\" or \"exit()\", but received \"$mode\"")
+            end
         end
 
-        redirect_stdout(old)
-        redirect_stderr(old_error)
     end
+    close(server)
 end
 
 function serverRunFile(sock)
@@ -129,7 +129,6 @@ function runfile(fname::AbstractString; args=String[], port=port, output=stdout)
     else
         fcompletename = fname
     end
-
     try
         sock = Sockets.connect(port)
         println(sock, "runFile()")
