@@ -10,8 +10,8 @@ end
 const first_time = [true]
 const token_end = "DaemonMode::Exit"
 
-function serve()
-    server = Sockets.listen(Sockets.localhost, PORT)
+function serve(port=PORT)
+    server = Sockets.listen(Sockets.localhost, port)
     global first_time
     global token_end
     quit = false
@@ -80,7 +80,7 @@ function serve()
     end
 end
 
-function runfile(fname::AbstractString; args=String[], output=stdout)
+function runfile(fname::AbstractString; args=String[], port=port, output=stdout)
     global token_end
     dir = dirname(fname)
 
@@ -91,7 +91,7 @@ function runfile(fname::AbstractString; args=String[], output=stdout)
     end
 
     try
-        sock = Sockets.connect(PORT)
+        sock = Sockets.connect(port)
         println(sock, pwd())
         println(sock, fcompletename)
         println(sock, join(args, " "))
@@ -107,11 +107,11 @@ function runfile(fname::AbstractString; args=String[], output=stdout)
     return
 end
 
-function runargs()
+function runargs(port=PORT)
     if isempty(ARGS)
         println(file=stderr, "Error: missing filename")
     end
-    runfile(ARGS[1], args=ARGS[2:end])
+    runfile(ARGS[1], args=ARGS[2:end], port=port)
 end
 
 export serve
