@@ -10,7 +10,10 @@ function add_packages(fname::AbstractString)
 end
 
 const first_time = Ref(true)
-const token_end = "DaemonMode::Exit"
+const token_runfile = "DaemonMode::runfile"
+const token_runexpr = "DaemonMode::runexpr"
+const token_exit = "DaemonMode::exit"
+const token_end = "DaemonMode::end"
 
 function serve(port=PORT)
     server = Sockets.listen(Sockets.localhost, port)
@@ -23,17 +26,18 @@ function serve(port=PORT)
         
         redirect_stdout(sock) do
             redirect_stderr(sock) do
-        
-                if mode == "runFile()"
+                
+                if mode == token_runfile
                     serverRunFile(sock)
-                elseif mode == "runExpr()"
+                elseif mode == token_runexpr
                     serverRunExpr(sock)
-                elseif mode == "exit()"
+                elseif mode == token_exit
                     println(sock, token_end)
                     sleep(1)
                     quit = true
                 else
                     println(sock, "Error, unrecognised mode, expected (\"runFile()\", \"runExpr()\" or \"exit()\", but received \"$mode\"")
+                    quit = true
                 end
 
             end
@@ -78,12 +82,13 @@ end
 
 function serverRunExpr(sock)
     dir = readline(sock)
-    expr = readline(sock)
+    expr = readuntil(sock, token_end) # Read until token_end to handle multi-line expressions
     error = ""
 
     try
         cd(dir) do 
-            Main.eval(Meta.parse(expr))
+            evaledExpr = Meta.parse(expr)
+            Main.eval(evaledExpr)
         end
     catch e
         if isa(e, LoadError)
@@ -106,9 +111,10 @@ end
 function runexpr(expr::AbstractString ; output = stdout, port = PORT)
     try
         sock = Sockets.connect(port)
-        println(sock, "runExpr()")
+        println(sock, token_runexpr)
         println(sock, pwd())
         println(sock, expr)
+        println(sock, token_end)
 
         line = readline(sock)
         while (line != token_end)
@@ -131,7 +137,7 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
     end
     try
         sock = Sockets.connect(port)
-        println(sock, "runFile()")
+        println(sock, token_runfile)
         println(sock, pwd())
         println(sock, fcompletename)
         println(sock, join(args, " "))
@@ -148,7 +154,7 @@ end
 
 function sendExitCode(port = PORT)
     sock = Sockets.connect(port)
-    println(sock, "exit()")
+    println(sock, token_exit)
 end
 
 function runargs(port=PORT)

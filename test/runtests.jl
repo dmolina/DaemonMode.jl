@@ -31,11 +31,25 @@ end
 @testset "runExpr" begin
     task = @async serve()
     sleep(1)
+
     buffer = IOBuffer()
     expr = "x = 3 ; for i = 1:x ; println(i) ; end"
     runexpr(expr, output=buffer)
     output = String(take!(buffer))
     @test output == "1\n2\n3\n"
+
+
+    buffer = IOBuffer()
+    expr = "begin
+        x = 2
+        for i = 1:2
+            println(i)
+        end
+    end"
+    runexpr(expr, output=buffer)
+    output = String(take!(buffer))
+    @test output == "1\n2\n"
+
     sendExitCode()
     wait(task)
 end
