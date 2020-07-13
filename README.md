@@ -146,6 +146,30 @@ user	0m0.369s
 sys	0m0.300s
 ```
 
+# Evaluate an expression on the server
+
+Alternatively, a String can be passed to the server which is then parsed and evaluated in its global scope.
+
+```julia
+using DaemonTools
+
+runexpr("using CSV, DataFrames")
+
+fname = "tsp_50.csv";
+
+runexpr("""begin
+      df = CSV.File("$fname") |> DataFrame
+      println(last(df, 3))
+  end""")
+3×2 DataFrames.DataFrame
+│ Row │ x        │ y          │
+│     │ Float64  │ Float64    │
+├─────┼──────────┼────────────┤
+│ 1   │ 0.420169 │ 0.628786   │
+│ 2   │ 0.892219 │ 0.673288   │
+│ 3   │ 0.530688 │ 0.00151249 │
+```
+
 # Features
 
 - [X] Performance, because packages are maintained in memory. This is especially interesting with common external packages like CSV.jl, DataFrames.jl, ...
