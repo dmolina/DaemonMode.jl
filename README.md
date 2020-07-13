@@ -10,28 +10,28 @@ Julia is a great language, but the Just-in-Time compiler implies that loading a 
 
 It is true that this time is only required for the first time (and there are options, like using and the package [Revise](https://github.com/timholy/Revise.jl)). However, it is a great disadvantage when we want to use Julia to create small scripts.
 
-This package solve that problem. Inspired in the daemon-mode of Emacs, this package create a server/client model. This allow julia to run scripts a lot quickly scripts in Julia, because the package is maintained in memory between the run of several scripts (or run the same script several times).
+This package solves that problem. Inspired by the daemon-mode of Emacs, this package uses a server/client model. This allows julia to run scripts a lot faster, because the package is maintained in memory between the runs of (to run the same script several times).
 
 # Usage
 
-- The server is the responsible of running all julia scripts.
+- The server, that is responsible for running all julia scripts:
  
   ```julia
-  julia -e 'using DaemonMode; serve()'
+  julia --startup-file=no -e 'using DaemonMode; serve()'
   ```
 
-- A client, that send to the server the file to run, and return the output obtained.
+- A client, that sends to the server the file to be run, and returns the output obtained (without --startup-file=no could be slow, use that option unless you know you want your .julia/config/startup.jl file run):
   
   ```julia
-  julia -e 'using DaemonMode; runargs()' program.jl <arguments>
+  julia --startup-file=no -e 'using DaemonMode; runargs()' program.jl <arguments>
   ```
 
-  you can use an alias 
+  You can use an alias:
   ```sh
-  alias juliaclient='julia -e "using DaemonMode; runargs()"'
+  alias juliaclient='julia --startup-file=no -e "using DaemonMode; runargs()"'
   ```
   
-  then, instead of `julia program.jl` you can do `juliaclient program.jl`. The output should be the same, but with a lot less time.
+  then, instead of `julia program.jl` you can do `juliaclient program.jl`. The output should be the same, while running much faster.
   
 # Process
 
@@ -41,11 +41,11 @@ The process is the following:
    
 2. The server receives the program name, and run it, returning the output to the client process.
 
-3. The client process receives the output and show it to the console.
+3. The client process receives the output and shows it to the console.
 
 # Example
 
-Supose that we have the script *test.jl*
+Suppose that we have the script *test.jl*
 
 ```julia
 using CSV, DataFrames
@@ -73,12 +73,12 @@ user	0m18.670s
 sys	    0m0.476s
 ```
 
-Only loading the CSV, DataFrames, and reading a simple file takes 18 seconds in my computer (I accept donnations :-)). Every time that you run the program is going to take these 18 seconds.
+Only loading the CSV, DataFrames, and reading a simple file takes 18 seconds on my computer. Every time that you run the program is going to take these 18 seconds.
 
 using DaemonMode:
 
 ```sh
-$ julia -e 'using DaemonMode; serve()' &
+$ julia --startup-file=no -e 'using DaemonMode; serve()' &
 $ time juliaclient test.jl tsp_50.csv
 3×2 DataFrames.DataFrame
 │ Row │ x        │ y          │
@@ -93,7 +93,7 @@ user	0m0.329s
 sys	0m0.318s
 ```
 
-But next times, it is a lot faster:
+But next time (and thereafter), it is a lot faster (I accept donations :-)):
 
 ```sh
 $ time juliaclient test.jl tsp_50.csv
@@ -110,7 +110,7 @@ user	0m0.336s
 sys	0m0.317s
 ```
 
-A reduction from 18s to 0.3s, the **next runs only take a 2% of the original time*.
+A reduction from 18s to 0.3s, the **next run only take a 2% of the original time*.
 
 Also, you can change the file and the performance is maintained:
 
@@ -172,20 +172,20 @@ runexpr("""begin
 
 # Features
 
-- [X] Performance, because the packages is maintained in memory. This is specially interesting with common external packages like CSV.jl, DataFrames, ...
+- [X] Performance, because packages are maintained in memory. This is especially interesting with common external packages like CSV.jl, DataFrames.jl, ...
 
 - [X] The code is run using the current directory as working directory.
 
-- [X] Robust, if the file have an error, the server continues working.
+- [X] Robust, if the file has an error, the server continues working (for other scripts, stops for your current one).
 
-- [X] It accept parameters without problem.
+- [X] It accepts parameters without problems.
 
 * TODO
 
-- [ ] Update isinteractive() to say that the run is run in a interactive way.
+- [ ] Update isinteractive() to show that the run is run in a interactive way.
 
-- [ ] Automatically installation of required packages.
+- [ ] Automatic installation of required packages.
 
 - [ ] Multi-threading version.
 
-- [ ] Run in multiple modules to avoid conflict of names.
+- [ ] Run in multiple modules to avoid conflicts of names.
