@@ -3,15 +3,17 @@ using Test
 using Sockets
 
 @testset "Start Server" begin
-    @test_throws Base.IOError connect(3000)
-    task = @async serve()
+    port = 3001
+    @test_throws Base.IOError connect(port)
+    task = @async serve(port)
     sleep(1)
-    sendExitCode()
+    sendExitCode(port)
     wait(task)
 end
 
 @testset "runFile" begin
-    task = @async serve()
+    port = 3002
+    task = @async serve(port)
     sleep(1)
     buffer = IOBuffer()
     files = ["hello.jl", "hello2.jl"]
@@ -19,22 +21,23 @@ end
 
     for (file, out) in zip(files, outputs)
         @test isfile(file)
-        runfile(file, output=buffer)
+        runfile(file, output=buffer, port=port)
         output = String(take!(buffer))
         @test output == out
     end
 
-    sendExitCode()
+    sendExitCode(port)
     wait(task)
 end
 
 @testset "runExpr" begin
-    task = @async serve()
+    port = 3003
+    task = @async serve(port)
     sleep(1)
 
     buffer = IOBuffer()
     expr = "x = 3 ; for i = 1:x ; println(i) ; end"
-    runexpr(expr, output=buffer)
+    runexpr(expr, output=buffer, port=port)
     output = String(take!(buffer))
     @test output == "1\n2\n3\n"
 
@@ -46,10 +49,29 @@ end
             println(i)
         end
     end"
-    runexpr(expr, output=buffer)
+    runexpr(expr, output=buffer, port=port)
     output = String(take!(buffer))
     @test output == "1\n2\n"
 
-    sendExitCode()
+    sendExitCode(port)
+    wait(task)
+end
+
+@testset "runConflict" begin
+    port = 3004
+    task = @async serve(port)
+    sleep(1)
+    buffer = IOBuffer()
+    files = ["conflict1.jl", "conflict2.jl"]
+    outputs = ["f(1) = 2\n", "f + 2 = 3\n"]
+
+    for (file, out) in zip(files, outputs)
+        @test isfile(file)
+        runfile(file, output=buffer, port=port)
+        output = String(take!(buffer))
+        @test output == out
+    end
+
+    sendExitCode(port)
     wait(task)
 end
