@@ -23,10 +23,10 @@ function serve(port=PORT)
     while !quit
         sock = accept(server)
         mode = readline(sock)
-        
+
         redirect_stdout(sock) do
             redirect_stderr(sock) do
-                
+
                 if mode == token_runfile
                     serverRunFile(sock)
                 elseif mode == token_runexpr
