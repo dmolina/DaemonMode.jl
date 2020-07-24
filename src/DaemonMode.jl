@@ -46,7 +46,9 @@ function serve(port=PORT)
 
         try
             cd(dir)
-            include(joinpath(dir, fname))
+            m = Module()
+            content = join(readlines(joinpath(dir, fname)), "\n")
+            include_string(m, content)
         catch e
             if isa(e, LoadError)
                 if :msg in propertynames(e.error)
