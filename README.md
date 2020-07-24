@@ -151,7 +151,7 @@ sys	0m0.300s
 Alternatively, a String can be passed to the server which is then parsed and evaluated in its global scope.
 
 ```julia
-using DaemonTools
+using DaemonMode
 
 runexpr("using CSV, DataFrames")
 
