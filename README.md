@@ -170,6 +170,30 @@ runexpr("""begin
 │ 3   │ 0.530688 │ 0.00151249 │
 ```
 
+# Avoid conflict of names
+
+The function names could conflict with the variable and function name of new
+files, because they are constants. In order to avoid any possible problem
+`DaemonMode` run all files in its own module to avoid any conflict of name.
+
+Thus, if we have two files like: 
+
+```julia
+# conflict1.jl
+f(x) = x + 1
+@show f(1)
+```
+
+and 
+
+```julia
+# conflict2.jl
+f = 1
+@show f + 1
+```
+
+The DaemonMode client could run each one of them after the other one without any problem.
+
 # Features
 
 - [X] Performance, because packages are maintained in memory. This is especially interesting with common external packages like CSV.jl, DataFrames.jl, ...
@@ -179,6 +203,8 @@ runexpr("""begin
 - [X] Robust, if the file has an error, the server continues working (for other scripts, stops for your current one).
 
 - [X] It accepts parameters without problems.
+
+- [X] Run complete file and also specific code.
 
 - [X] Run in multiple modules to avoid conflicts of names.
 
@@ -190,4 +216,4 @@ runexpr("""begin
 
 - [ ] Multi-threading version.
 
-- [ ] Remote version.
+- [ ] Remote version (in which the Server would be in a different computer of the client).
