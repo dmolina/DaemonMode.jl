@@ -174,7 +174,7 @@ runexpr("""begin
 
 The function names could conflict with the variable and function name of new
 files, because they are constants. In order to avoid any possible problem
-`DaemonMode` run all files in its own module to avoid any conflict of name.
+`DaemonMode` run all files in its own module to avoid any conflict of names.
 
 Thus, if we have two files like: 
 
