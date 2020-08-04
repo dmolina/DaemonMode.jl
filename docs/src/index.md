@@ -24,22 +24,22 @@ the run of several scripts (or run the same script several times).
  
   ```julia
   julia -e 'using DaemonMode; serve()'
-  ```
+```
 
 - A client, that send to the server the file to run, and return the output
   obtained.
   
-  ```julia
+```julia
   julia -e 'using DaemonMode; runargs()' program.jl <arguments>
-  ```
+```
 
   you can use an alias 
   ```sh
   alias juliaclient='julia -e "using DaemonMode; runargs()"'
-  ```
+```
   
-  then, instead of `julia program.jl` you can do `juliaclient program.jl`. The
-  output should be the same, but with a lot less time.
+then, instead of `julia program.jl` you can do `juliaclient program.jl`. The
+output should be the same, but with a lot less time.
   
 # Process
 
@@ -80,7 +80,7 @@ $ time julia test.jl tsp_50.csv
 
 real	0m18.831s
 user	0m18.670s
-sys	    0m0.476s
+sys     0m0.476s
 ```
 
 Only loading the CSV, DataFrames, and reading a simple file takes 18 seconds in
