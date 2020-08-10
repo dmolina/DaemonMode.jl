@@ -15,7 +15,18 @@ const token_runexpr = "DaemonMode::runexpr"
 const token_exit = "DaemonMode::exit"
 const token_end = "DaemonMode::end"
 
-function serve(port=PORT)
+"""
+    serve(port=3000, shared=false)
+
+Run the daemon, running all files and expressions sended by the client function.
+
+# Optionals
+
+- port: port to listen (default=3000).
+- shared: Share the environment between calls. If it is false (default) each run
+  has its own environment, so the variables/functions are not shared.
+"""
+function serve(port=PORT, shared=false)
     server = Sockets.listen(Sockets.localhost, port)
     quit = false
     current = pwd()
@@ -28,9 +39,9 @@ function serve(port=PORT)
             redirect_stderr(sock) do
 
                 if mode == token_runfile
-                    serverRunFile(sock)
+                    serverRunFile(sock, shared)
                 elseif mode == token_runexpr
-                    serverRunExpr(sock)
+                    serverRunExpr(sock, true)
                 elseif mode == token_exit
                     println(sock, token_end)
                     sleep(1)
@@ -46,8 +57,18 @@ function serve(port=PORT)
     end
     close(server)
 end
+"""
+serverRunFile(sock, shared)
 
-function serverRunFile(sock)
+Run the source code of the filename push through the socket.
+
+# Parameters
+
+- sock: socket in which is going to receive the dir, the filename, and args to run.
+- shared: Share the environment between calls. If it is false (default) each run
+has its own environment, so the variables/functions are not shared.
+""" 
+function serverRunFile(sock, shared)
     dir = readline(sock)
     fname = readline(sock)
     args_str = readline(sock)
@@ -59,10 +80,15 @@ function serverRunFile(sock)
     error = ""
 
     try
-        cd(dir) do 
-            m = Module()
+        cd(dir) do
             content = join(readlines(joinpath(dir, fname)), "\n")
-            include_string(m, content)
+
+            if (shared)
+                m = Module()
+                include_string(m, content)
+            else
+                include(content)
+            end
         end
     catch e
         if isa(e, LoadError)
@@ -82,15 +108,32 @@ function serverRunFile(sock)
     empty!(ARGS)
 end
 
-function serverRunExpr(sock)
+"""
+serverRunExpr(sock, shared)
+
+Run the source code of the filename push through the socket.
+
+# Parameters
+
+- sock: socket in which is going to receive the code to run.
+- shared: Share the environment between calls. If it is false (default) each run
+has its own environment, so the variables/functions are not shared.
+"""
+function serverRunExpr(sock, shared)
     dir = readline(sock)
     expr = readuntil(sock, token_end) # Read until token_end to handle multi-line expressions
     error = ""
 
     try
-        cd(dir) do 
-            evaledExpr = Meta.parse(expr)
-            Main.eval(evaledExpr)
+        cd(dir) do
+            if shared
+                evaledExpr = Meta.parse(expr)
+                Main.eval(evaledExpr)
+            else
+                evaledExpr = Meta.parse(expr)
+                m = Model()
+                m.eval(evaledExpr)
+            end
         end
     catch e
         if isa(e, LoadError)
@@ -110,6 +153,20 @@ function serverRunExpr(sock)
     empty!(ARGS)
 end
 
+"""
+    runexpr(expr::AbstractString)
+
+Ask the server to run julia code in a string pass as parameters.
+
+# Parameters
+
+- expr: Julia code to run in the server.
+
+# Optionals
+
+- port: Port (default=3000).
+- output: stream in which it is shown the output of the run.
+"""
 function runexpr(expr::AbstractString ; output = stdout, port = PORT)
     try
         sock = Sockets.connect(port)
@@ -129,6 +186,21 @@ function runexpr(expr::AbstractString ; output = stdout, port = PORT)
     end
 end
 
+"""
+    runfile(fname::AbstractString)
+
+Ask the server to run a specific filename.
+
+# Parameters
+
+- fname: Filename to run.
+
+# Optionals
+
+- args: List of arguments (array of String, default=[]).
+- port: Port (default=3000)
+- output: stream in which it is shown the output of the run.
+"""
 function runfile(fname::AbstractString; args=String[], port = PORT, output=stdout)
     dir = dirname(fname)
 
@@ -154,11 +226,29 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
     return
 end
 
-function sendExitCode(port = PORT)
+"""
+    sendExitCode(port)
+
+send the exit code, it closes the server.
+
+# Optionals
+
+- port: port to connect (default=3000).
+"""
+function sendExitCode(port=PORT)
     sock = Sockets.connect(port)
     println(sock, token_exit)
 end
 
+"""
+    runargs(port=PORT)
+
+Ask the server to run all files in ARGS.
+
+# Optionals
+
+- port: Port of the server to ask (default=3000).
+"""
 function runargs(port=PORT)
     if isempty(ARGS)
         println(file=stderr, "Error: missing filename")
