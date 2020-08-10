@@ -159,11 +159,24 @@ sys	0m0.300s
 
 # Features
 
-The advantages are:
+- [X] Performance, because packages are maintained in memory. This is especially interesting with common external packages like CSV.jl, DataFrames.jl, ...
 
-- Performance, because the packages is maintained in memory. This is specially
-  interesting with common external packages like CSV.jl, DataFrames, ...
+- [X] The code is run using the current directory as working directory.
 
-- The code is run using the current directory as working directory.
+- [X] Robust, if the file has an error, the server continues working (for other scripts, stops for your current one).
 
-- It accept parameters. 
+- [X] It accepts parameters without problems.
+
+- [X] Run complete file and also specific code.
+
+- [X] Run in multiple modules to avoid conflicts of names.
+
+# TODO (features in the roadmap)
+
+- [ ] Update isinteractive() to show that the run is run in a interactive way.
+
+- [ ] Automatic installation of required packages.
+
+- [ ] Multi-threading version.
+
+- [ ] Remote version (in which the Server would be in a different computer of the client).
