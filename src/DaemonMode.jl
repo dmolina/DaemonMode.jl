@@ -81,13 +81,13 @@ function serverRunFile(sock, shared)
 
     try
         cd(dir) do
-            content = join(readlines(joinpath(dir, fname)), "\n")
+            content = join(readlines(fname), "\n")
 
-            if (shared)
+            if (!shared)
                 m = Module()
                 include_string(m, content)
             else
-                include(content)
+                include(fname)
             end
         end
     catch e
