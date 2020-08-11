@@ -18,6 +18,12 @@ package create a server/client model. This allow julia to run scripts a lot
 quickly scripts in Julia, because the package is maintained in memory between
 the run of several scripts (or run the same script several times).
 
+!!! note
+
+    This package has been mentioned in JuliaCon 2020!
+    
+    [![DaemonMode in JuliaCon](/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
+
 # Usage
 
 - The server is the responsible of running all julia scripts.

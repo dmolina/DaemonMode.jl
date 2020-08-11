@@ -10,7 +10,14 @@ Julia is a great language, but the Just-in-Time compiler implies that loading a 
 
 It is true that this time is only required for the first time (and there are options, like using and the package [Revise](https://github.com/timholy/Revise.jl)). However, it is a great disadvantage when we want to use Julia to create small scripts.
 
-This package solves that problem. Inspired by the daemon-mode of Emacs, this package uses a server/client model. This allows julia to run scripts a lot faster, because the package is maintained in memory between the runs of (to run the same script several times).
+This package solves that problem. Inspired by the daemon-mode of Emacs, this
+package uses a server/client model. This allows julia to run scripts a lot
+faster, because the package is maintained in memory between the runs of (to run
+the same script several times).
+
+!This package has been mentioned in JuliaCon 2020!
+
+[![DaemonMode in JuliaCon](https://dmolina.github.io/DaemonMode.jl/dev/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
 
 # Usage
 
