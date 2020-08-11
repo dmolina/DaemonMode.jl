@@ -20,9 +20,9 @@ the run of several scripts (or run the same script several times).
 
 !!! note
 
-    This package has been mentioned in JuliaCon 2020!
+    This package has been mentioned in JuliaCon 2020, Thank you, Fredrik Ekre!
     
-    [![DaemonMode in JuliaCon](/dev/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
+    [![DaemonMode in JuliaCon](https://dmolina.github.io/DaemonMode.jl/dev/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
 
 # Usage
 

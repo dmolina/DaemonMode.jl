@@ -15,7 +15,7 @@ package uses a server/client model. This allows julia to run scripts a lot
 faster, because the package is maintained in memory between the runs of (to run
 the same script several times).
 
-! This package has been mentioned in JuliaCon 2020 !
+! This package has been mentioned in JuliaCon 2020, Thank you, Fredrik Ekre!
 
 [![DaemonMode in JuliaCon](https://dmolina.github.io/DaemonMode.jl/dev/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
 
