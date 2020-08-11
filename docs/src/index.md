@@ -22,7 +22,7 @@ the run of several scripts (or run the same script several times).
 
     This package has been mentioned in JuliaCon 2020!
     
-    [![DaemonMode in JuliaCon](/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
+    [![DaemonMode in JuliaCon](/dev/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
 
 # Usage
 
