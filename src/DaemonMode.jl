@@ -103,8 +103,16 @@ function serverRunFile(sock, shared)
         end
     end
 
-    !isempty(error) && println(sock, error)
-    println(sock, token_end)
+    try
+        !isempty(error) && println(sock, error)
+        println(sock, token_end)
+    catch e
+        if (e isa Base.IOError) && abs(e.code) == abs(Libc.EPIPE)
+            # client disconnected early, ignore
+        else
+            rethrow()
+        end
+    end
     empty!(ARGS)
 end
 
