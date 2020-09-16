@@ -139,8 +139,8 @@ function serverRunExpr(sock, shared)
                 Main.eval(evaledExpr)
             else
                 evaledExpr = Meta.parse(expr)
-                m = Model()
-                m.eval(evaledExpr)
+                m = Module()
+                Base.eval(m, evaledExpr)
             end
         end
     catch e
