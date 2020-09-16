@@ -26,7 +26,7 @@ Run the daemon, running all files and expressions sended by the client function.
 - shared: Share the environment between calls. If it is false (default) each run
   has its own environment, so the variables/functions are not shared.
 """
-function serve(port=PORT, shared=false)
+function serve(port=PORT, shared=missing)
     server = Sockets.listen(Sockets.localhost, port)
     quit = false
     current = pwd()
@@ -39,9 +39,19 @@ function serve(port=PORT, shared=false)
             redirect_stderr(sock) do
 
                 if mode == token_runfile
-                    serverRunFile(sock, shared)
+                    shared_client = shared
+
+                    if ismissing(shared_client)
+                        shared_client = false
+                    end
+                    serverRunFile(sock, shared_client)
                 elseif mode == token_runexpr
-                    serverRunExpr(sock, true)
+                    shared_client = shared
+
+                    if ismissing(shared_client)
+                        shared_client = true
+                    end
+                    serverRunExpr(sock, shared_client)
                 elseif mode == token_exit
                     println(sock, token_end)
                     sleep(1)

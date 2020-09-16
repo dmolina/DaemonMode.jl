@@ -1,7 +1,17 @@
 # CHANGELOG
 
 All notable changes to this project will be documented in this file.
-This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a Changelog](http://keepachangelog.com/).
+This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a
+Changelog](http://keepachangelog.com/).
+
+
+### Changes
+* By default it shares the environment in expr, and not in files. It can be changed as a parameter in server.
+
+### Fixes
+
+* Better behaviour when the client close the communication
+
 
 ## 0.1.0 - (2020-08-11)
 ---
