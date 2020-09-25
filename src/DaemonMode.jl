@@ -26,7 +26,7 @@ Run the daemon, running all files and expressions sended by the client function.
 - shared: Share the environment between calls. If it is false (default) each run
   has its own environment, so the variables/functions are not shared.
 """
-function serve(port=PORT, shared=missing)
+function serve(port=PORT, shared=missing; print_stack=false)
     server = Sockets.listen(Sockets.localhost, port)
     quit = false
     current = pwd()
@@ -35,38 +35,78 @@ function serve(port=PORT, shared=missing)
         sock = accept(server)
         mode = readline(sock)
 
-        redirect_stdout(sock) do
-            redirect_stderr(sock) do
-
-                if mode == token_runfile
-                    shared_client = shared
-
-                    if ismissing(shared_client)
-                        shared_client = false
-                    end
-                    serverRunFile(sock, shared_client)
-                elseif mode == token_runexpr
-                    shared_client = shared
-
-                    if ismissing(shared_client)
-                        shared_client = true
-                    end
-                    serverRunExpr(sock, shared_client)
-                elseif mode == token_exit
-                    println(sock, token_end)
-                    sleep(1)
-                    quit = true
-                else
-                    println(sock, "Error, unrecognised mode, expected (\"runFile()\", \"runExpr()\" or \"exit()\", but received \"$mode\"")
-                    quit = true
-                end
-
-            end
+        if mode == token_runfile
+            serverRunFile(sock, coalesce(shared, false), print_stack)
+        elseif mode == token_runexpr
+            serverRunExpr(sock, coalesce(shared, true), print_stack)
+        elseif mode == token_exit
+            println(sock, token_end)
+            sleep(1)
+            quit = true
+        else
+            println(sock, "Error, unrecognised mode, expected (\"runFile()\", \"runExpr()\" or \"exit()\", but received \"$mode\"")
+            quit = true
         end
 
     end
     close(server)
 end
+
+function serverReplyError(sock, e)
+    try
+        showerror(sock, e)
+        println(sock)
+        println(sock, token_end)
+    catch e
+        if (e isa Base.IOError) && abs(e.code) == abs(Libc.EPIPE)
+            # client disconnected early, ignore
+        else
+            rethrow()
+        end
+    end
+end
+
+function serverReplyError(sock, e, bt)
+    try
+        showerror(sock, e, bt)
+        println(sock)
+        println(sock, token_end)
+    catch e
+        if (e isa Base.IOError) && abs(e.code) == abs(Libc.EPIPE)
+            # client disconnected early, ignore
+        else
+            rethrow()
+        end
+    end
+end
+
+function serverRun(run, sock, shared, print_stack)
+
+    redirect_stdout(sock) do
+        redirect_stderr(sock) do
+
+            try
+
+                if shared
+                    run(Main)
+                else
+                    run(Module())
+                end
+                println(sock, token_end)
+
+            catch e
+                if print_stack
+                    serverReplyError(sock, e, catch_backtrace())
+                else
+                    serverReplyError(sock, e)
+                end
+            end
+
+        end
+    end
+
+end
+
 """
 serverRunFile(sock, shared)
 
@@ -78,51 +118,28 @@ Run the source code of the filename push through the socket.
 - shared: Share the environment between calls. If it is false (default) each run
 has its own environment, so the variables/functions are not shared.
 """ 
-function serverRunFile(sock, shared)
-    dir = readline(sock)
-    fname = readline(sock)
-    args_str = readline(sock)
-    args = split(args_str, " ")
-
-    append!(ARGS, args)
-
-    first_time[] = true
-    error = ""
+function serverRunFile(sock, shared, print_stack)
 
     try
+        dir = readline(sock)
+        fname = readline(sock)
+        args_str = readline(sock)
+
+        args = split(args_str, " ")
+        append!(ARGS, args)
+
+        first_time[] = true
+
         cd(dir) do
-            content = join(readlines(fname), "\n")
-
-            if (!shared)
-                m = Module()
-                include_string(m, content)
-            else
-                include(fname)
+            content = read(fname, String)
+            serverRun(sock, shared, print_stack) do mod
+                include_string(mod, content)
             end
         end
     catch e
-        if isa(e, LoadError)
-            if :msg in propertynames(e.error)
-                error_msg = e.error.msg
-            else
-                error_msg = "$(e.error)"
-            end
-            error = "ERROR in line $(e.line): '$(error_msg)'"
-        else
-            error = "ERROR: could not open file '$fname'"
-        end
+        serverReplyError(sock, e)
     end
 
-    try
-        !isempty(error) && println(sock, error)
-        println(sock, token_end)
-    catch e
-        if (e isa Base.IOError) && abs(e.code) == abs(Libc.EPIPE)
-            # client disconnected early, ignore
-        else
-            rethrow()
-        end
-    end
     empty!(ARGS)
 end
 
@@ -137,44 +154,20 @@ Run the source code of the filename push through the socket.
 - shared: Share the environment between calls. If it is false (default) each run
 has its own environment, so the variables/functions are not shared.
 """
-function serverRunExpr(sock, shared)
-    dir = readline(sock)
-    expr = readuntil(sock, token_end) # Read until token_end to handle multi-line expressions
-    error = ""
+function serverRunExpr(sock, shared, print_stack)
 
     try
+        dir = readline(sock)
+        expr = readuntil(sock, token_end) # Read until token_end to handle multi-line expressions
+        parsedExpr = Meta.parse(expr)
+
         cd(dir) do
-            if shared
-                evaledExpr = Meta.parse(expr)
-                Main.eval(evaledExpr)
-            else
-                evaledExpr = Meta.parse(expr)
-                m = Module()
-                Base.eval(m, evaledExpr)
+            serverRun(sock, shared, print_stack) do mod
+                Base.eval(mod, parsedExpr)
             end
         end
     catch e
-        if isa(e, LoadError)
-            if :msg in propertynames(e.error)
-                error_msg = e.error.msg
-            else
-                error_msg = "$(e.error)"
-            end
-            error = "ERROR in line $(e.line): '$(error_msg)'"
-        else
-            error = "ERROR: $e"
-        end
-    end
-
-    try
-        !isempty(error) && println(sock, error)
-        println(sock, token_end)
-    catch e
-        if (e isa Base.IOError) && abs(e.code) == abs(Libc.EPIPE)
-            # client disconnected early, ignore
-        else
-            rethrow()
-        end
+        serverReplyError(e)
     end
 
     empty!(ARGS)
