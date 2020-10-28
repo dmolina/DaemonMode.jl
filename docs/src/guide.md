@@ -133,3 +133,111 @@ It is possible to run the different files/expressions in the same Module, using
 the parameter shared to *true* in the function `serve()`. This implies that the
 variables are shared between the different clients. It could be useful to avoid
 repeating evaluations, but it could produce conflict of names.
+
+```sh
+julia -e 'using DaemonMode; runargs(3001)' file1.jl
+```
+# Debugging a script
+
+Sometimes the script is not lack of errors, in this case, it is only show the
+first line of error.
+
+By example:
+
+```julia
+function fun2(a)
+    println(a+b)
+end
+
+function fun1()
+    fun2(4)
+end
+
+fun1()
+```
+
+and the server:
+
+```sh
+julia --project -e 'using DaemonMode; serve(3000)'
+```
+
+The output usually should be:
+
+```sh
+# julia --project=. -e "using DaemonMode; runargs()" test/bad.jl 
+LoadError: syntax: incomplete: premature end of input
+in expression starting at string:1
+```
+
+This is usually not wanted. 
+
+In order to fix it, and to receive more informative messages, it is recommended
+the parameter print_stack:
+
+```sh
+julia --project -e 'using DaemonMode; serve(3000, print_stack=true)'
+```
+
+When it is run the code now more informative messages:
+
+```sh
+# julia --project=. -e "using DaemonMode; runargs()" test/bad2.jl 
+LoadError: UndefVarError: b not defined
+Stacktrace:
+ [1] fun2(::Int64) at ./string:2
+ [2] fun1() at ./string:6
+ [3] top-level scope at string:9
+ [4] include_string(::Function, ::Module, ::String, ::String) at ./loading.jl:1088
+ [5] include_string at ./loading.jl:1096 [inlined] (repeats 2 times)
+ [6] #7 at /mnt/home/daniel/working/DaemonMode/src/DaemonMode.jl:140 [inlined]
+ [7] (::DaemonMode.var"#3#5"{DaemonMode.var"#7#9"{String},Sockets.TCPSocket,Bool,Bool})() at /mnt/home/daniel/working/DaemonMode/src/DaemonMode.jl:97
+ [8] redirect_stderr(::DaemonMode.var"#3#5"{DaemonMode.var"#7#9"{String},Sockets.TCPSocket,Bool,Bool}, ::Sockets.TCPSocket) at ./stream.jl:1150
+ [9] #2 at /mnt/home/daniel/working/DaemonMode/src/DaemonMode.jl:88 [inlined]
+ [10] redirect_stdout(::DaemonMode.var"#2#4"{DaemonMode.var"#7#9"{String},Sockets.TCPSocket,Bool,Bool}, ::Sockets.TCPSocket) at ./stream.jl:1150
+ [11] serverRun at /mnt/home/daniel/working/DaemonMode/src/DaemonMode.jl:87 [inlined]
+ [12] #6 at /mnt/home/daniel/working/DaemonMode/src/DaemonMode.jl:139 [inlined]
+ [13] cd(::DaemonMode.var"#6#8"{Sockets.TCPSocket,Bool,Bool,String}, ::String) at ./file.jl:104
+ [14] serverRunFile(::Sockets.TCPSocket, ::Bool, ::Bool) at /mnt/home/daniel/working/DaemonMode/src/DaemonMode.jl:137
+ [15] serve(::Int64, ::Missing; print_stack::Bool) at /mnt/home/daniel/working/DaemonMode/src/DaemonMode.jl:40
+ [16] top-level scope at none:1
+ [17] eval(::Module, ::Any) at ./boot.jl:331
+ [18] exec_options(::Base.JLOptions) at ./client.jl:272
+ [19] _start() at ./client.jl:506
+in expression starting at string:9
+```
+
+Obviously, the majority of the complete stack mention the DaemonMode functions,
+but at least the error can be identified more easily.
+
+# Including a file
+
+In first versions of the package, you cannot use the "include" function to
+include the code of an external file (for a better organization of the code).
+This has been solved, so now you can use include function as normal.
+
+Example:
+
+In file **include_test.jl**:
+
+```julia
+include("to_include.jl")
+
+println(f_aux(2,3))
+```
+
+and in **to_include.jl**:
+
+```julia
+function f_aux(a,b)
+    return a*b
+end
+```
+
+```sh
+# julia --project=. -e "using DaemonMode; runargs()" include_test.jl 
+6
+```
+
+Remember that the current directory is the directory in which julia command is
+run, so it is recommended to run in the same directory that the script with the include.

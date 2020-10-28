@@ -15,6 +15,7 @@ const token_runexpr = "DaemonMode::runexpr"
 const token_exit = "DaemonMode::exit"
 const token_end = "DaemonMode::end"
 
+
 """
     serve(port=3000, shared=false)
 
@@ -25,8 +26,9 @@ Run the daemon, running all files and expressions sended by the client function.
 - port: port to listen (default=3000).
 - shared: Share the environment between calls. If it is false (default) each run
   has its own environment, so the variables/functions are not shared.
+- print_stack: Print the complete stack when there is an error. By default it is true.
 """
-function serve(port=PORT, shared=missing; print_stack=false)
+function serve(port=PORT, shared=missing; print_stack=true)
     server = Sockets.listen(Sockets.localhost, port)
     quit = false
     current = pwd()
@@ -80,17 +82,20 @@ function serverReplyError(sock, e, bt)
     end
 end
 
+
 function serverRun(run, sock, shared, print_stack)
 
     redirect_stdout(sock) do
         redirect_stderr(sock) do
 
             try
-
                 if shared
                     run(Main)
                 else
-                    run(Module())
+                    m = Module()
+                    add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
+                    Base.eval(m, add_include)
+                    run(m)
                 end
                 println(sock, token_end)
 

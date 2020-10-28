@@ -1,7 +1,7 @@
 name = "DaemonMode"
 uuid = "d749ddd5-2b29-4920-8305-6ff5a704e36e"
 authors = ["Daniel Molina"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"

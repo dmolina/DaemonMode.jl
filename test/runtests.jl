@@ -75,3 +75,14 @@ end
     sendExitCode(port)
     wait(task)
 end
+
+@testset "testInclude" begin
+    port = 3005
+    task = @async serve(port)
+    sleep(1)
+    buffer = IOBuffer()
+    files = ["conflict1.jl", "conflict2.jl"]
+    runfile("include_test.jl", output=buffer, port=port)
+    output = String(take!(buffer))
+    @test output == "6\n"
+end

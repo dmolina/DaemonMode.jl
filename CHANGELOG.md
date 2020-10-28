@@ -1,17 +1,24 @@
+
+
 # CHANGELOG
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a
 Changelog](http://keepachangelog.com/).
 
+## 0.1.1 - (2020-10-28)
 
-### Changes
-* By default it shares the environment in expr, and not in files. It can be changed as a parameter in server.
+* Add parameter *print_stack* to server, that allows serve to indicate the
+  complete stack when there is an error.
 
-### Fixes
+
+* By default it shares the environment in expr, and not in files. It can be
+  changed as a parameter in server.
+
 
 * Better behaviour when the client close the communication
 
+* Fix error with include in the script.
 
 ## 0.1.0 - (2020-08-11)
 ---
@@ -29,6 +36,5 @@ Changelog](http://keepachangelog.com/).
 - Run complete file and also specific code.
 
 - Run in multiple modules to avoid conflicts of names.
-
 
 
