@@ -16,8 +16,8 @@ end
     task = @async serve(port)
     sleep(1)
     buffer = IOBuffer()
-    files = ["hello.jl", "hello2.jl"]
-    outputs = ["Hello, World!\n", "Hello, World\n\nBye, World!\n"]
+    files = ["hello.jl", "hello2.jl", "print.jl"]
+    outputs = ["Hello, World!\n", "Hello, World\n\nBye, World!\n", "Hello, World"]
 
     for (file, out) in zip(files, outputs)
         @test isfile(file)

@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a
 Changelog](http://keepachangelog.com/).
 
+## master
+
+### Fixed
+
+* Problem when the client did not run a println, but only a print.
+
+
 ## 0.1.1 - (2020-10-28)
 
 * Add parameter *print_stack* to server, that allows serve to indicate the
@@ -36,5 +43,4 @@ Changelog](http://keepachangelog.com/).
 - Run complete file and also specific code.
 
 - Run in multiple modules to avoid conflicts of names.
-
 

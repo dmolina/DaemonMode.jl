@@ -241,9 +241,16 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
         println(sock, fcompletename)
         println(sock, join(args, " "))
         line = readline(sock)
-        while (line != token_end)
+        token_size = length(token_end)
+
+        while (length(line) < token_size || !occursin(token_end, line))
             println(output, line)
             line = readline(sock)
+        end
+
+        if length(line) > token_size
+            end_line = replace(line, token_end => "")
+            print(output, end_line)
         end
     catch e
         println(stderr, "Error, cannot connect with server. Is it running?")
