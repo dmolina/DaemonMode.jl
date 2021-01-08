@@ -1,9 +1,8 @@
 # DaemonMode
 
-[![Documentation](https://github.com/dmolina/MoodleQuestions.jl/workflows/Documentation/badge.svg)](https://dmolina.github.io/DaemonMode.jl/dev/)
-[![Build
-Status with Travis](https://travis-ci.com/dmolina/DaemonMode.jl.svg?branch=master)](https://travis-ci.com/dmolina/DaemonMode.jl)
+
 ![Build Status with Github Action](https://github.com/dmolina/DaemonMode.jl/workflows/Run%20tests/badge.svg)
+[![Documentation](https://github.com/dmolina/DaemonMode.jl/workflows/Documentation/badge.svg)](https://dmolina.github.io/DaemonMode.jl/dev/)
 
 
 # Introduction
