@@ -197,7 +197,7 @@ function runexpr(expr::AbstractString ; output = stdout, port = PORT)
         sock = Sockets.connect(port)
         println(sock, token_runexpr)
         println(sock, pwd())
-        println(sock, expr)
+        println(sock, strip(expr))
         println(sock, token_end)
 
         line = readline(sock)
