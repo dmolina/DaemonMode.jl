@@ -172,7 +172,7 @@ function serverRunExpr(sock, shared, print_stack)
             end
         end
     catch e
-        serverReplyError(e)
+        serverReplyError(sock,e)
     end
 
     empty!(ARGS)
