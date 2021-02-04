@@ -333,7 +333,7 @@ Ask the server to run all files in ARGS.
 """
 function runargs(port=PORT)
     if isempty(ARGS)
-        println(file=stderr, "Error: missing filename")
+        println(stderr, "Error: missing filename")
     end
     runfile(ARGS[1], args=ARGS[2:end], port=port)
 end
