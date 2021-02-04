@@ -8,10 +8,11 @@ Changelog](http://keepachangelog.com/).
 
 ## master
 
-### Fixed
+## 0.1.2 - (2021-02-05)
 
 * Problem when the client did not run a println, but only a print.
 
+* Fix backtrace with colors, and including the line of the file.
 
 ## 0.1.1 - (2020-10-28)
 
