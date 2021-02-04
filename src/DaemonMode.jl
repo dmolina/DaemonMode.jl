@@ -85,18 +85,21 @@ end
 
 function send_backtrace(sock, bt, fname)
     stacks = map(first, Base.process_backtrace(bt))
+    fullname = ""
 
     if !isempty(stacks)
         println(sock)
         println(sock, "Stacktrace:")
     end
 
-    fullname = joinpath(pwd(), fname)
+    if !isempty(fname)
+        fullname = joinpath(pwd(), fname)
+    end
 
     for (i, stack) in enumerate(stacks)
         file = String(stack.file)
 
-        if occursin("string", file)
+        if occursin("string", file) && !isempty(fullname)
             file = fullname
         end
 
@@ -214,12 +217,12 @@ function serverRunExpr(sock, shared, print_stack)
         parsedExpr = Meta.parse(expr)
 
         cd(dir) do
-            serverRun(sock, shared, print_stack) do mod
+            serverRun(sock, shared, print_stack, "") do mod
                 Base.eval(mod, parsedExpr)
             end
         end
     catch e
-        serverReplyError(e)
+        serverReplyError(sock, e)
     end
 
     empty!(ARGS)
