@@ -58,8 +58,9 @@ end
         for i = 1:2
             println(i)
         end
-    end\n\n"
-    # @test Meta.parse(expr)
+    end
+    
+    "
 
     runexpr(expr, output=buffer, port=port)
     output = String(take!(buffer))
