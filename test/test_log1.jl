@@ -1,18 +1,13 @@
 using  Logging, LoggingExtras
 
-logger = MinLevelLogger(global_logger(), Logging.Debug)
-logger = global_logger()
-
 function msg()
-    @warn "warning 2\nanother line\nlast one"
-    @error "error 2"
-    @info "info 2"
-    @debug "debug 2"
+    @warn "warning 1\nanother line\nlast one"
+    @error "error 1"
+    @info "info 1"
+    @debug "debug 1"
 end
 
-with_logger(logger) do
-    msg()
-end
+msg()
 
 with_logger(FileLogger("salida.log")) do
     msg()
