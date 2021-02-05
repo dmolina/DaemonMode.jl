@@ -36,7 +36,7 @@ end
     sleep(1)
 
     buffer = IOBuffer()
-    expr = "x = 3 ; for i = 1:x ; println(i) ; end"
+    expr = "x = 3 ; for i = 1:x ; println(i) ; end\n"
     runexpr(expr, output=buffer, port=port)
     output = String(take!(buffer))
     @test output == "1\n2\n3\n"
