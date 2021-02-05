@@ -19,7 +19,7 @@ using directly julia.
 
 For instance, with the following file bad.jl:
 
-```sh
+```julia
 function fun2(a)
     println(a+b)
 end
