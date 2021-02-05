@@ -214,7 +214,7 @@ function serverRunExpr(sock, shared, print_stack)
     try
         dir = readline(sock)
         expr = readuntil(sock, token_end) # Read until token_end to handle multi-line expressions
-        parsedExpr = Meta.parse(expr)
+        parsedExpr = Meta.parse(strip(expr))
 
         cd(dir) do
             serverRun(sock, shared, print_stack, "") do mod
