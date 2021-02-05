@@ -1,13 +1,15 @@
 name = "DaemonMode"
 uuid = "d749ddd5-2b29-4920-8305-6ff5a704e36e"
 authors = ["Daniel Molina"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
+Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 
 [compat]
 julia = "1.4"
+Crayons = "4.0"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

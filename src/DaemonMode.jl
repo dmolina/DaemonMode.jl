@@ -2,6 +2,9 @@ module DaemonMode
 
 export serve, runfile, runargs, runexpr, sendExitCode
 
+using Crayons
+using Crayons.Box
+
 using Sockets
 
 const PORT = 3000
@@ -54,9 +57,21 @@ function serve(port=PORT, shared=missing; print_stack=true)
     close(server)
 end
 
+function myshowerror(sock::IO, e)
+    io = IOBuffer()
+    showerror(io, e)
+    msg = String(take!(io))
+    line = first(split(msg, '\n'))
+    posi = findfirst(':', line)
+    print(sock, RED_FG, BOLD, "ERROR: ")
+    print(sock, Crayon(foreground=:white, bold=false), line[1:posi])
+    print(sock, Crayon(foreground=:red, bold=false), line[posi+1:end])
+    print(sock, Crayon(reset=true))
+end
+
 function serverReplyError(sock, e)
     try
-        showerror(sock, e)
+        myshowerror(sock, e)
         println(sock)
         println(sock, token_end)
     catch e
@@ -68,9 +83,43 @@ function serverReplyError(sock, e)
     end
 end
 
-function serverReplyError(sock, e, bt)
+function send_backtrace(sock, bt, fname)
+    stacks = map(first, Base.process_backtrace(bt))
+    fullname = ""
+
+    if !isempty(stacks)
+        println(sock)
+        println(sock, "Stacktrace:")
+    end
+
+    if !isempty(fname)
+        fullname = joinpath(pwd(), fname)
+    end
+
+    for (i, stack) in enumerate(stacks)
+        file = String(stack.file)
+
+        if occursin("string", file) && !isempty(fullname)
+            file = fullname
+        end
+
+        if occursin("loading.jl", file)
+            return
+        end
+
+        print(sock, " [$i] ")
+
+        print(sock, BOLD, stack.func)
+        print(sock, Crayon(reset=true), " at ")
+        print(sock, BOLD, file, ":", stack.line)
+        println(sock, Crayon(reset=true))
+    end
+end
+
+function serverReplyError(sock, e, bt, fname)
     try
-        showerror(sock, e, bt)
+        myshowerror(sock, e)
+        send_backtrace(sock, bt, fname)
         println(sock)
         println(sock, token_end)
     catch e
@@ -83,8 +132,7 @@ function serverReplyError(sock, e, bt)
 end
 
 
-function serverRun(run, sock, shared, print_stack)
-
+function serverRun(run, sock, shared, print_stack, fname)
     redirect_stdout(sock) do
         redirect_stderr(sock) do
 
@@ -94,6 +142,7 @@ function serverRun(run, sock, shared, print_stack)
                 else
                     m = Module()
                     add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
+                    # Base.eval(m, "Base.exit(x)=return x")
                     Base.eval(m, add_include)
                     run(m)
                 end
@@ -101,7 +150,7 @@ function serverRun(run, sock, shared, print_stack)
 
             catch e
                 if print_stack
-                    serverReplyError(sock, e, catch_backtrace())
+                    serverReplyError(sock, e, catch_backtrace(), fname)
                 else
                     serverReplyError(sock, e)
                 end
@@ -124,6 +173,7 @@ Run the source code of the filename push through the socket.
 has its own environment, so the variables/functions are not shared.
 """ 
 function serverRunFile(sock, shared, print_stack)
+    fname = ""
 
     try
         dir = readline(sock)
@@ -137,7 +187,7 @@ function serverRunFile(sock, shared, print_stack)
 
         cd(dir) do
             content = read(fname, String)
-            serverRun(sock, shared, print_stack) do mod
+            serverRun(sock, shared, print_stack, fname) do mod
                 include_string(mod, content)
             end
         end
@@ -167,12 +217,12 @@ function serverRunExpr(sock, shared, print_stack)
         parsedExpr = Meta.parse(expr)
 
         cd(dir) do
-            serverRun(sock, shared, print_stack) do mod
+            serverRun(sock, shared, print_stack, "") do mod
                 Base.eval(mod, parsedExpr)
             end
         end
     catch e
-        serverReplyError(sock,e)
+        serverReplyError(sock, e)
     end
 
     empty!(ARGS)
@@ -197,7 +247,7 @@ function runexpr(expr::AbstractString ; output = stdout, port = PORT)
         sock = Sockets.connect(port)
         println(sock, token_runexpr)
         println(sock, pwd())
-        println(sock, strip(expr))
+        println(sock, expr)
         println(sock, token_end)
 
         line = readline(sock)
@@ -254,6 +304,7 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
         end
     catch e
         println(stderr, "Error, cannot connect with server. Is it running?")
+        exit(1)
     end
     return
 end
@@ -283,8 +334,13 @@ Ask the server to run all files in ARGS.
 """
 function runargs(port=PORT)
     if isempty(ARGS)
-        println(file=stderr, "Error: missing filename")
+        println(stderr, "Error: missing filename")
+        exit(1)
+    elseif !isfile(ARGS[1])
+        println(stderr, "Error: file '$(ARGS[1])' doest not exist")
+        exit(1)
     end
+
     runfile(ARGS[1], args=ARGS[2:end], port=port)
 end
 
