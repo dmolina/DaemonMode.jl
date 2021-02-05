@@ -13,6 +13,7 @@ makedocs(;
     ),
     pages=[
         "Quick Start" => "index.md",
+        "Posibilities" => "posibilities.md",
         "User Guide" => "guide.md",
         "Public API" => "reference.md"
     ],

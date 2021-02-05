@@ -179,6 +179,8 @@ sys	0m0.300s
 
 - [X] Fix error in include.
 
+- [X] Error Stack as it was run directly.
+
 # TODO (features in the roadmap)
 
 - [ ] Update isinteractive() to show that the run is run in a interactive way.
