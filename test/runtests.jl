@@ -100,3 +100,24 @@ end
     output = String(take!(buffer))
     @test output == "6\n"
 end
+
+@testset "testLogs" begin
+    port = 3006
+    task = @async serve(port)
+    sleep(1)
+    buffer = IOBuffer()
+    runfile("test_log1.jl", output=buffer, port=port)
+    output = String(take!(buffer))
+    lines = split(output, "\n")
+    # Remove colors
+    lines = replace.(lines, r"\e\[.*?m"=>"")
+    @test occursin("Warning: warning 2", lines[1])
+    @test occursin("another line", lines[2])
+    @test occursin("last one", lines[3])
+    @test occursin("test_log1.jl: 7", lines[4])
+    @test occursin(r"Error: error 2", lines[5])
+    @test occursin("test_log1.jl: 8", lines[6])
+    @test occursin("Info: info 2", lines[7])
+    @test occursin("test_log1.jl: 9", lines[8])
+    @test occursin("Debug: debug 2", lines[9])
+end

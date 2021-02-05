@@ -2,6 +2,8 @@ module DaemonMode
 
 export serve, runfile, runargs, runexpr, sendExitCode
 
+using Logging, LoggingExtras
+
 using Crayons
 using Crayons.Box
 
@@ -131,6 +133,40 @@ function serverReplyError(sock, e, bt, fname)
     end
 end
 
+function create_mylog(fname)
+    function mylog(io, args)
+        reset = Crayon(reset=true)
+        color = reset
+        type = string(args.level)
+
+        if args.level == Logging.Warn
+            color = Crayon(foreground=:yellow, bold=true)
+            type = "Warning"
+        elseif args.level == Logging.Error
+            color = Crayon(foreground=:red, bold=true)
+        elseif args.level == Logging.Info
+            color = Crayon(foreground=:cyan, bold=true)
+        end
+
+        print(io, color, "┌ ", type, ": ", reset);
+        lines = split(args.message, "\n")
+        println(io, lines[1])
+
+        for line in lines[2:end]
+            println(io, color, "│ ", reset, line)
+        end
+
+        module_str = string(args._module)
+        module_str = replace(module_str, ".anonymous" => "")
+        file = args.file
+
+        if file == "string"
+            file = joinpath(pwd(), fname)
+        end
+
+        println(io, color, "└ ", Crayon(foreground=:dark_gray), "@ ", module_str, " ", file, ": ", args.line)
+    end
+end
 
 function serverRun(run, sock, shared, print_stack, fname)
     redirect_stdout(sock) do
@@ -141,8 +177,8 @@ function serverRun(run, sock, shared, print_stack, fname)
                     run(Main)
                 else
                     m = Module()
+                    Logging.global_logger(FormatLogger(create_mylog(fname), sock))
                     add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
-                    # Base.eval(m, "Base.exit(x)=return x")
                     Base.eval(m, add_include)
                     run(m)
                 end

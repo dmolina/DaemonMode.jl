@@ -216,6 +216,12 @@ The DaemonMode client could run each one of them after the other one without any
 
 - [X] Run in multiple modules to avoid conflicts of names.
 
+- [X] Error Stack as it was run directly.
+
+- [X] Fix default logging output.
+
+- [X] Return 1 when an error occurs.
+
 # TODO
 
 - [ ] Automatic installation of required packages.
