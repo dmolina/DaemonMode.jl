@@ -15,4 +15,5 @@ DaemonMode.serve(port=3000, shared=false)
 runargs()
 runfile(fname::AbstractString)
 runexpr(expr::AbstractString)
+sendExitCode()
 ```
