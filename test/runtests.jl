@@ -53,6 +53,20 @@ end
     output = String(take!(buffer))
     @test output == "1\n2\n"
 
+    expr = "begin 
+        x = 2
+        for i = 1:2
+            println(i)
+        end
+    end
+    
+    "
+
+    runexpr(expr, output=buffer, port=port)
+    output = String(take!(buffer))
+    @test output == "1\n2\n"
+    @test istaskdone(task) == false
+
     sendExitCode(port)
     wait(task)
 end
