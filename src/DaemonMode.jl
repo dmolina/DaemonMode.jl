@@ -304,6 +304,7 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
         end
     catch e
         println(stderr, "Error, cannot connect with server. Is it running?")
+        exit(1)
     end
     return
 end
@@ -334,7 +335,12 @@ Ask the server to run all files in ARGS.
 function runargs(port=PORT)
     if isempty(ARGS)
         println(stderr, "Error: missing filename")
+        exit(1)
+    elseif !isfile(ARGS[1])
+        println(stderr, "Error: file '$(ARGS[1])' doest not exist")
+        exit(1)
     end
+
     runfile(ARGS[1], args=ARGS[2:end], port=port)
 end
 
