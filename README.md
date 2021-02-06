@@ -218,7 +218,7 @@ The DaemonMode client could run each one of them after the other one without any
 
 - [X] Error Stack as it was run directly.
 
-- [X] Fix default logging output.
+- [X] logging output in console working nicely.
 
 - [X] Return 1 when an error occurs.
 

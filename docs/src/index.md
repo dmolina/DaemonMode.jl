@@ -177,9 +177,9 @@ sys	0m0.300s
 
 - [X] Run in multiple modules to avoid conflicts of names.
 
-- [X] Fix error in include.
+- [X] logging output in console working nicely.
 
-- [X] Error Stack as it was run directly.
+- [X] Return 1 when an error occurs.
 
 # TODO (features in the roadmap)
 
