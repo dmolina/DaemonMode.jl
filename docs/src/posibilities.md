@@ -120,6 +120,34 @@ or in color:
 
 ![Logging with jclient](assets/jclient_log.png)
 
+## Return code
 
+juliaclient defined as:
+
+alias juliaclient='julia --startup-file=no -e "using DaemonMode; runargs()"'
+
+return 
+
+- 0 if the script runs without any problem.
+- 1 if there is any unexpected problem.
+
+By example:
+
+```julia
+$ jclient hello.jl 
+Hello, World!
+$ echo $?
+0
+$ jclient bad.jl 
+ERROR: LoadError: UndefVarError: b not defined
+Stacktrace:
+ [1] fun2 at /mnt/home/daniel/working/DaemonMode/test/bad.jl:2
+ [2] fun1 at /mnt/home/daniel/working/DaemonMode/test/bad.jl:6
+ [3] top-level scope at /mnt/home/daniel/working/DaemonMode/test/bad.jl:9
+
+$ echo $?
+1
+```
 [](## Parameter Options)
+
 
