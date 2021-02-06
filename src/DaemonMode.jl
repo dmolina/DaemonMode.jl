@@ -19,6 +19,8 @@ const token_runfile = "DaemonMode::runfile"
 const token_runexpr = "DaemonMode::runexpr"
 const token_exit = "DaemonMode::exit"
 const token_end = "DaemonMode::end"
+const token_ok_end = "DaemonMode::end_ok"
+const token_error_end = "DaemonMode::end_er"
 
 
 """
@@ -75,7 +77,7 @@ function serverReplyError(sock, e)
     try
         myshowerror(sock, e)
         println(sock)
-        println(sock, token_end)
+        println(sock, token_error_end)
     catch e
         if (e isa Base.IOError) && abs(e.code) == abs(Libc.EPIPE)
             # client disconnected early, ignore
@@ -123,7 +125,7 @@ function serverReplyError(sock, e, bt, fname)
         myshowerror(sock, e)
         send_backtrace(sock, bt, fname)
         println(sock)
-        println(sock, token_end)
+        println(sock, token_error_end)
     catch e
         if (e isa Base.IOError) && abs(e.code) == abs(Libc.EPIPE)
             # client disconnected early, ignore
@@ -182,7 +184,7 @@ function serverRun(run, sock, shared, print_stack, fname)
                     Base.eval(m, add_include)
                     run(m)
                 end
-                println(sock, token_end)
+                println(sock, token_ok_end)
 
             catch e
                 if print_stack
@@ -287,7 +289,7 @@ function runexpr(expr::AbstractString ; output = stdout, port = PORT)
         println(sock, token_end)
 
         line = readline(sock)
-        while (line != token_end)
+        while (line != token_ok_end && line != token_error_end)
             println(output, line)
             line = readline(sock)
         end
@@ -313,6 +315,7 @@ Ask the server to run a specific filename.
 - output: stream in which it is shown the output of the run.
 """
 function runfile(fname::AbstractString; args=String[], port = PORT, output=stdout)
+    result = 0
     dir = dirname(fname)
 
     if isempty(dir)
@@ -327,22 +330,27 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
         println(sock, fcompletename)
         println(sock, join(args, " "))
         line = readline(sock)
-        token_size = length(token_end)
+        token_size = length(token_ok_end)
 
-        while (length(line) < token_size || !occursin(token_end, line))
+        while (length(line) < token_size || (!occursin(token_ok_end, line) && !occursin(token_error_end, line)))
             println(output, line)
             line = readline(sock)
         end
 
+        if occursin(token_error_end, line)
+            result = 1
+        end
+
         if length(line) > token_size
-            end_line = replace(line, token_end => "")
+            end_line = replace(line, token_ok_end => "")
+            end_line = replace(end_line, token_error_end => "")
             print(output, end_line)
         end
     catch e
         println(stderr, "Error, cannot connect with server. Is it running?")
         exit(1)
     end
-    return
+    return result
 end
 
 """
@@ -377,7 +385,8 @@ function runargs(port=PORT)
         exit(1)
     end
 
-    runfile(ARGS[1], args=ARGS[2:end], port=port)
+    result = runfile(ARGS[1], args=ARGS[2:end], port=port)
+    exit(result)
 end
 
 

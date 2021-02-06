@@ -90,6 +90,26 @@ end
     wait(task)
 end
 
+@testset "runFileError" begin
+    port = 3002
+    task = @async serve(port)
+    sleep(1)
+    buffer = IOBuffer()
+    files = ["bad.jl", "hello.jl"]
+    outputs = [1, 0]
+
+    for (file, out) in zip(files, outputs)
+        @test isfile(file)
+        sal = runfile(file, output=buffer, port=port)
+        @test sal == out
+    end
+
+    sendExitCode(port)
+    wait(task)
+end
+
+
+
 @testset "testInclude" begin
     port = 3005
     task = @async serve(port)
