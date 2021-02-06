@@ -332,7 +332,7 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
         line = readline(sock)
         token_size = length(token_ok_end)
 
-        while (length(line) < token_size || (!occursin(token_ok_end, line) && !occursin(token_error_end, line)))
+        while (length(line) < token_size || !occursin(token_end, line))
             println(output, line)
             line = readline(sock)
         end
