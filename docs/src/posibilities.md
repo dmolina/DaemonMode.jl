@@ -5,8 +5,6 @@ have doubts about the limitations of running a script through DaemonMode.
 
 This section is to prove you that you can do more than expected.
 
-## Parameter Options
-
 ## Error Stack
 
 Current version of Daemon can show the Error Stack in a very similar way than
@@ -63,5 +61,65 @@ or in color:
 
 ## Logging
 
+The script can use Logging. There are two situations:
 
-## Error Stack
+- The messages are written to a external file. 
+
+- The messages are written to console. 
+
+Both situations are working nicely. For instance, for the file *test_log1.jl*:
+
+```julia
+using  Logging, LoggingExtras
+
+function msg()
+    @warn "warning 1\nanother line\nlast one"
+    @error "error 1"
+    @info "info 1"
+    @debug "debug 1"
+end
+
+msg()
+```
+
+running directly with julia:
+
+```sh
+$ julia test_log1.jl
+┌ Warning: warning 1
+│ another line
+│ last one
+└ @ Main ~/working/DaemonMode/test/test_log1.jl:4
+┌ Error: error 1
+└ @ Main ~/working/DaemonMode/test/test_log1.jl:5
+[ Info: info 1
+```
+while in color:
+
+![Logging with julia](assets/julia_log.png)
+
+
+
+running with client:
+
+```julia
+$ juliaclient test_log1.jl
+ Warning: warning 1
+│ another line
+│ last one
+└ @ Main /mnt/home/daniel/working/DaemonMode/test/test_log1.jl: 4
+┌ Error: error 1
+└ @ Main /mnt/home/daniel/working/DaemonMode/test/test_log1.jl: 5
+┌ Info: info 1
+└ @ Main /mnt/home/daniel/working/DaemonMode/test/test_log1.jl: 6
+┌ Debug: debug 1
+└ @ Main /mnt/home/daniel/working/DaemonMode/test/test_log1.jl: 7
+```
+
+or in color:
+
+![Logging with jclient](assets/jclient_log.png)
+
+
+[](## Parameter Options)
+
