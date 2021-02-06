@@ -8,6 +8,11 @@ Changelog](http://keepachangelog.com/).
 
 ## master
 
+
+## 0.1.3 - (2021-02-06)
+
+* Return the error code in runargs() when an exception occurs.
+
 ## 0.1.2 - (2021-02-05)
 
 * Problem when the client did not run a println, but only a print.
