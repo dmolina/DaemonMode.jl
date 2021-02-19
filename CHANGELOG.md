@@ -8,6 +8,9 @@ Changelog](http://keepachangelog.com/).
 
 ## master
 
+## 0.1.4 - (2021-02-06)
+
+* Disable Debug Logging by default.
 
 ## 0.1.3 - (2021-02-06)
 
