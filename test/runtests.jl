@@ -139,5 +139,4 @@ end
     @test occursin("test_log1.jl: 5", lines[6])
     @test occursin("Info: info 1", lines[7])
     @test occursin("test_log1.jl: 6", lines[8])
-    @test occursin("Debug: debug 1", lines[9])
 end
