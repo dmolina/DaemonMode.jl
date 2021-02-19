@@ -179,7 +179,7 @@ function serverRun(run, sock, shared, print_stack, fname)
                     run(Main)
                 else
                     m = Module()
-                    Logging.global_logger(FormatLogger(create_mylog(fname), sock))
+                    Logging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), sock), Logging.Info))
                     add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
                     Base.eval(m, add_include)
                     run(m)
