@@ -8,6 +8,10 @@ Changelog](http://keepachangelog.com/).
 
 ## master
 
+### Fixes
+
+* Fix error with ARGS
+
 ## 0.1.4 - (2021-02-06)
 
 * Disable Debug Logging by default.

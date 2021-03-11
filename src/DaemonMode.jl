@@ -217,9 +217,11 @@ function serverRunFile(sock, shared, print_stack)
         dir = readline(sock)
         fname = readline(sock)
         args_str = readline(sock)
-
         args = split(args_str, " ")
-        append!(ARGS, args)
+
+        if !isempty(args) && !isempty(args[1])
+            append!(ARGS, args)
+        end
 
         first_time[] = true
 
