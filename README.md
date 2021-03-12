@@ -224,10 +224,12 @@ The DaemonMode client could run each one of them after the other one without any
 
 # TODO
 
-- [ ] Automatic installation of required packages.
+- [ ] Allow exit in client.
+
+- [ ] Update isinteractive() to show that the run is run in a interactive way.
 
 - [ ] Remote version (in which the Server would be in a different computer of the client).
 
-- [ ] Update isinteractive() to show that the run is run in a interactive way.
+- [ ] Automatic installation of required packages.
 
 - [ ] Multi-threading version.
