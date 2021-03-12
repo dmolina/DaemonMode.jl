@@ -2,6 +2,45 @@ using DaemonMode
 using Test
 using Sockets
 
+
+function init_server(port)
+    task = @async serve(port)
+    sleep(1)
+    return task
+end
+
+function end_server(task, port)
+    sendExitCode(port)
+    wait(task)
+end
+
+
+
+function test_evalfile(file; port)
+    task = init_server(port)
+    buffer = IOBuffer()
+    runfile(file, output=buffer, port=port)
+    output = String(take!(buffer))
+    end_server(task, port)
+    return output
+end
+
+function test_evalfiles(files; port)
+    task = init_server(port)
+    buffer = IOBuffer()
+    outputs = String[]
+
+    for file in files
+        runfile(file, output=buffer, port=port)
+        push!(outputs, String(take!(buffer)))
+    end
+
+    end_server(task, port)
+    return outputs
+end
+
+
+
 @testset "Start Server" begin
     port = 3001
     @test_throws Base.IOError connect(port)
@@ -12,22 +51,13 @@ using Sockets
 end
 
 @testset "runFile" begin
-    port = 3002
-    task = @async serve(port)
-    sleep(1)
-    buffer = IOBuffer()
     files = ["hello.jl", "hello2.jl", "print.jl"]
-    outputs = ["Hello, World!\n", "Hello, World\n\nBye, World!\n", "Hello, World"]
+    expected = ["Hello, World!\n", "Hello, World\n\nBye, World!\n", "Hello, World"]
+    outputs = test_evalfiles(files, port=3002)
 
-    for (file, out) in zip(files, outputs)
-        @test isfile(file)
-        runfile(file, output=buffer, port=port)
-        output = String(take!(buffer))
-        @test output == out
+    for (expected, output) in zip(expected, outputs)
+        @test output == expected
     end
-
-    sendExitCode(port)
-    wait(task)
 end
 
 @testset "runExpr" begin
@@ -72,62 +102,40 @@ end
 end
 
 @testset "runConflict" begin
-    port = 3004
-    task = @async serve(port)
-    sleep(1)
-    buffer = IOBuffer()
     files = ["conflict1.jl", "conflict2.jl"]
-    outputs = ["f(1) = 2\n", "f + 2 = 3\n"]
+    outputs = test_evalfiles(files, port=3004)
+    expected = ["f(1) = 2\n", "f + 2 = 3\n"]
 
-    for (file, out) in zip(files, outputs)
-        @test isfile(file)
-        runfile(file, output=buffer, port=port)
-        output = String(take!(buffer))
-        @test output == out
+    for (expect, output) in zip(expected, outputs)
+        @test expect == output
     end
-
-    sendExitCode(port)
-    wait(task)
 end
 
 @testset "runFileError" begin
-    port = 3002
-    task = @async serve(port)
-    sleep(1)
-    buffer = IOBuffer()
+    port = 3004
+    task = init_server(port)
     files = ["bad.jl", "hello.jl"]
-    outputs = [1, 0]
+    expected = [1, 0]
 
-    for (file, out) in zip(files, outputs)
-        @test isfile(file)
-        sal = runfile(file, output=buffer, port=port)
-        @test sal == out
+    buffer = IOBuffer()
+
+    for (file, return_code) in zip(files, expected)
+        code = runfile(file, output=buffer, port=port)
+        @test code == return_code
     end
 
-    sendExitCode(port)
-    wait(task)
+    end_server(task, port)
 end
 
 
 
 @testset "testInclude" begin
-    port = 3005
-    task = @async serve(port)
-    sleep(1)
-    buffer = IOBuffer()
-    files = ["conflict1.jl", "conflict2.jl"]
-    runfile("include_test.jl", output=buffer, port=port)
-    output = String(take!(buffer))
+    output = test_evalfile("include_test.jl", port=3006)
     @test output == "6\n"
 end
 
 @testset "testLogs" begin
-    port = 3006
-    task = @async serve(port)
-    sleep(1)
-    buffer = IOBuffer()
-    runfile("test_log1.jl", output=buffer, port=port)
-    output = String(take!(buffer))
+    output = test_evalfile("test_log1.jl", port=3007)
     lines = split(output, "\n")
     # Remove colors
     lines = replace.(lines, r"\e\[.*?m"=>"")
@@ -140,3 +148,11 @@ end
     @test occursin("Info: info 1", lines[7])
     @test occursin("test_log1.jl: 6", lines[8])
 end
+
+
+@testset "testArgs" begin
+    output = test_evalfile("args.jl", port=3008)
+    lines = split(output, "\n")
+    @test lines[1] == "String[]"
+end
+
