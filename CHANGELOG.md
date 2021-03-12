@@ -9,8 +9,11 @@ Changelog](http://keepachangelog.com/).
 ## master
 
 ### Fixes
-
 * Fix error with ARGS
+
+### New
+
+* Experimental feature of async with async parameter in server. It is nicely working but it can merge the outputs in console.
 
 ## 0.1.4 - (2021-02-06)
 
@@ -42,8 +45,6 @@ Changelog](http://keepachangelog.com/).
 
 ## 0.1.0 - (2020-08-11)
 ---
-
-### New
 
 - Performance, because packages are maintained in memory. This is especially interesting with common external packages like CSV.jl, DataFrames.jl, ...
 

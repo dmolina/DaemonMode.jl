@@ -18,13 +18,16 @@ const first_time = Ref(true)
 const token_runfile = "DaemonMode::runfile"
 const token_runexpr = "DaemonMode::runexpr"
 const token_exit = "DaemonMode::exit"
-const token_end = "DaemonMode::end"
+const token_client_end = "DaemonMode::client_end"
+const token_server_async_end = "DaemonMode::async_end"
+const token_server_sync_end = "DaemonMode::sync_end"
 const token_ok_end = "DaemonMode::end_ok"
 const token_error_end = "DaemonMode::end_er"
+const token_end = "DaemonMode::end"
 
 
 """
-    serve(port=3000, shared=false)
+    serve_sync(port=3000, shared=false, print_stack=true, async=false)
 
 Run the daemon, running all files and expressions sended by the client function.
 
@@ -34,13 +37,64 @@ Run the daemon, running all files and expressions sended by the client function.
 - shared: Share the environment between calls. If it is false (default) each run
   has its own environment, so the variables/functions are not shared.
 - print_stack: Print the complete stack when there is an error. By default it is true.
+- async: Run the clients in different clients, **Experimental**.
 """
-function serve(port=PORT, shared=missing; print_stack=true)
-    server = Sockets.listen(Sockets.localhost, port)
-    quit = false
-    current = pwd()
+function serve(port=PORT, shared=missing; print_stack=true, async=false)
+    if (async)
+        return serve_async(port, shared, print_stack=print_stack)
+    else
+        return serve_sync(port, shared; print_stack=print_stack)
+    end
 
-    while !quit
+end
+
+function serve_async(port=PORT, shared=missing; print_stack=true, nicely=true)
+    server = Sockets.listen(Sockets.localhost, port)
+    current = pwd()
+    continue_server = Threads.Atomic{Bool}(true)
+    tasks = Task[]
+
+    while continue_server[] && isopen(server)
+        sock = accept(server)
+        task = @async begin
+            local mode
+            mode = readline(sock)
+
+            if mode == token_runfile
+                serverRunFile(sock, coalesce(shared, false), print_stack)
+            elseif mode == token_runexpr
+                serverRunExpr(sock, coalesce(shared, true), print_stack)
+            elseif mode == token_client_end
+                println(sock, token_server_async_end)
+                continue_server[] = false
+            else
+                println(sock, "Error, unrecognised mode, expected (\"runFile()\", \"runExpr()\" or \"exit()\", but received \"$mode\"")
+                continue_server[] = false
+            end
+        end
+
+        push!(tasks, task)
+    end
+
+    if nicely
+        # wait all pending tasks
+        for task in tasks
+            try
+                wait(task)
+            catch e
+            end
+        end
+    end
+
+    close(server)
+end
+
+function serve_sync(port=PORT, shared=missing; print_stack=true)
+    server = Sockets.listen(Sockets.localhost, port)
+    current = pwd()
+    continue_server = true
+
+    while continue_server
         sock = accept(server)
         mode = readline(sock)
 
@@ -48,18 +102,19 @@ function serve(port=PORT, shared=missing; print_stack=true)
             serverRunFile(sock, coalesce(shared, false), print_stack)
         elseif mode == token_runexpr
             serverRunExpr(sock, coalesce(shared, true), print_stack)
-        elseif mode == token_exit
-            println(sock, token_end)
-            sleep(1)
-            quit = true
+        elseif mode == token_client_end
+            println(sock, token_server_sync_end)
+            continue_server = false
         else
             println(sock, "Error, unrecognised mode, expected (\"runFile()\", \"runExpr()\" or \"exit()\", but received \"$mode\"")
-            quit = true
+            continue_server = false
         end
-
     end
+
     close(server)
 end
+
+
 
 function myshowerror(sock::IO, e)
     io = IOBuffer()
@@ -350,6 +405,7 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
         end
     catch e
         println(stderr, "Error, cannot connect with server. Is it running?")
+        # println(stderr, e)
         exit(1)
     end
     return result
@@ -366,7 +422,23 @@ send the exit code, it closes the server.
 """
 function sendExitCode(port=PORT)
     sock = Sockets.connect(port)
-    println(sock, token_exit)
+    println(sock, token_client_end)
+    line = readline(sock)
+    error = true
+
+    if line == token_server_sync_end
+        error = false
+    elseif line == token_server_async_end
+        error = false
+
+        # For async it is need to create a new connection
+        try
+            sock = Sockets.connect(port)
+        catch e
+        end
+    end
+
+    return error
 end
 
 """

@@ -150,4 +150,23 @@ $ echo $?
 ```
 [](## Parameter Options)
 
+## Async mode
+
+By default, the server only run one task each time. With the optional parameter
+async=true to server, the server run each client in a new client.
+
+```sh
+$  julia -e 'using DaemonMode; serve(async=true)'
+```
+
+This have several advantages:
+
+- You can run any new client without waiting the previous close.
+
+- If one process ask for close the Daemon, it will wait until all clients have
+  been finished.
+
+The main drawback is that the output can be send to the last task. We are
+  working on that. 
+
 

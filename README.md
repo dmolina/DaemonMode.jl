@@ -200,7 +200,27 @@ f = 1
 @show f + 1
 ```
 
-The DaemonMode client could run each one of them after the other one without any problem.
+The DaemonMode client could run each one of them after the other one without any
+problem.
+
+# Async mode
+
+By default, the server only run one task each time. With the optional parameter
+async=true to server, the server run each client in a new client.
+
+```sh
+$  julia -e 'using DaemonMode; serve(async=true)'
+```
+
+This have several advantages:
+
+- You can run any new client without waiting the previous close.
+
+- If one process ask for close the Daemon, it will wait until all clients have
+  been finished.
+
+The main drawback is that the output can be send to the last task. We are
+  working on that. 
 
 # Features
 
@@ -222,14 +242,16 @@ The DaemonMode client could run each one of them after the other one without any
 
 - [X] Return 1 when an error occurs.
 
+- [ ] Multi-threading version (Experimental mode: conflict standard output).
+
 # TODO
 
-- [ ] Allow exit in client.
+- [ ] Allow to use function exit in client.
+
+- [ ] Fix redirect with several tasks.
 
 - [ ] Update isinteractive() to show that the run is run in a interactive way.
 
 - [ ] Remote version (in which the Server would be in a different computer of the client).
 
 - [ ] Automatic installation of required packages.
-
-- [ ] Multi-threading version.

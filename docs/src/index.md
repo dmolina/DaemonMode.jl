@@ -181,12 +181,16 @@ sys	0m0.300s
 
 - [X] Return 1 when an error occurs.
 
+- [X] Multi-threading version (Experimental mode: conflict standard output).
+
 # TODO (features in the roadmap)
+
+- [ ] Allow to use function exit in client.
+
+- [ ] Fix redirect with several tasks.
 
 - [ ] Update isinteractive() to show that the run is run in a interactive way.
 
-- [ ] Automatic installation of required packages.
-
-- [ ] Multi-threading version.
-
 - [ ] Remote version (in which the Server would be in a different computer of the client).
+
+- [ ] Automatic installation of required packages.

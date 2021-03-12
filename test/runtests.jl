@@ -4,7 +4,7 @@ using Sockets
 
 
 function init_server(port)
-    task = @async serve(port)
+    task = @async serve(port, async=false)
     sleep(1)
     return task
 end
@@ -44,7 +44,7 @@ end
 @testset "Start Server" begin
     port = 3001
     @test_throws Base.IOError connect(port)
-    task = @async serve(port)
+    task = @async serve(port, async=false)
     sleep(1)
     sendExitCode(port)
     wait(task)
@@ -62,7 +62,7 @@ end
 
 @testset "runExpr" begin
     port = 3003
-    task = @async serve(port)
+    task = @async serve(port, async=false)
     sleep(1)
 
     buffer = IOBuffer()
