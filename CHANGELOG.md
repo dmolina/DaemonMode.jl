@@ -1,3 +1,9 @@
+# CHANGELOG
+
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a
+Changelog](http://keepachangelog.com/).
+
 
 ## Unreleased
 ---
@@ -11,21 +17,15 @@
 ### Breaks
 
 
+## 0.1.5 - (2021-05-14)
 
+### Fixes
 
-# CHANGELOG
+* Fix error with ARGS.
 
-All notable changes to this project will be documented in this file.
-This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a
-Changelog](http://keepachangelog.com/).
-
-## master
-
-* Fix error with ARGS
+### News
 
 * Multi-task version.
-
-* Experimental feature of async with async parameter in server. It is nicely working but it can merge the outputs in console.
 
 ## 0.1.4 - (2021-02-06)
 
