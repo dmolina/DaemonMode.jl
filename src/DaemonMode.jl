@@ -226,44 +226,55 @@ function create_mylog(fname)
 end
 
 function serverRun(run, sock, shared, print_stack, fname, args)
- #   redirect_stdout(sock) do
-        redirect_stderr(sock) do
-
-            try
-                if shared
+    try
+        if shared
+            redirect_stdout(sock) do
+                redirect_stderr(sock) do
                     run(Main)
-                else
-                    m = Module()
-                    Logging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), sock), Logging.Info))
-                    add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
-                    Base.eval(m, add_include)
-                    add_params =  Meta.parse(string("ARGS = ", args))
-                    Base.eval(m, add_params)
-                    add_redirect = Meta.parse("const stdout=IOBuffer(); println(io, x...) = Base.println(io,x); println(x)=Base.println(stdout, x); println(io, x...)=Base.println(io, x); print(x)=Base.print(stdout, x); stdout")
-                    out = Base.eval(m, add_redirect)
-                    task = @async begin
-                        while isopen(sock)
-                            text = String(take!(out))
-                            print(sock, text)
-                            sleep(0.5)
-                        end
-                    end
-                    run(m)
-                    # If there is missing message I write it
-                    text = String(take!(out))
-                    print(sock, text)
-                end
-                println(sock, token_ok_end)
-
-            catch e
-                if print_stack
-                    serverReplyError(sock, e, catch_backtrace(), fname)
-                else
-                    serverReplyError(sock, e)
                 end
             end
+        else
+            redirect_stdout(sock) do
+                redirect_stderr(sock) do
+                m = Module()
+                Logging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), sock), Logging.Info))
+                add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
+                Base.eval(m, add_include)
 
-  #      end
+                if !isempty(args)
+                    add_params =  Meta.parse(string("ARGS = [\"", join(args, "\",\""), "\"]"))
+                else
+                    add_params =  Meta.parse(string("empty!(ARGS)"))
+                end
+
+                Base.eval(m, add_params)
+                # Following code is not needed, the real problem was global ARGS, not
+                add_redirect = Meta.parse("const stdout=IOBuffer(); println(io, x...) = Base.println(io,x...); println(x)=Base.println(stdout, x); println(x...)=Base.println(stdout, x...); println(io, x...)=Base.println(io, x...); print(x...)=Base.print(stdout, x...); stdout")
+                out = Base.eval(m, add_redirect)
+                task = @async begin
+                    while isopen(sock)
+                        text = String(take!(out))
+                        print(sock, text)
+                        sleep(0.5)
+                    end
+                end
+                run(m)
+                # If there is missing message I write it
+                text = String(take!(out))
+
+                if !isempty(text)
+                    print(sock, text)
+                end
+            end
+            end
+        end
+        println(sock, token_ok_end)
+    catch e
+        if print_stack
+            serverReplyError(sock, e, catch_backtrace(), fname)
+        else
+            serverReplyError(sock, e)
+        end
     end
 
 end
