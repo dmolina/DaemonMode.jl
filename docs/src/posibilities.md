@@ -166,7 +166,6 @@ This have several advantages:
 - If one process ask for close the Daemon, it will wait until all clients have
   been finished.
 
-The main drawback is that the output can be send to the last task. We are
-  working on that. 
+The main drawback is that the @show and logs in console can be send to the last task.
 
 

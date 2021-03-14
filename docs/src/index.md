@@ -181,7 +181,7 @@ sys	0m0.300s
 
 - [X] Return 1 when an error occurs.
 
-- [X] Multi-threading version (Experimental mode: conflict standard output).
+- [X] Multi-threading version.
 
 # TODO (features in the roadmap)
 
