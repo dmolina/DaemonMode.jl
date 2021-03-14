@@ -225,7 +225,7 @@ function create_mylog(fname)
     end
 end
 
-function serverRun(run, sock, shared, print_stack, fname)
+function serverRun(run, sock, shared, print_stack, fname, args)
  #   redirect_stdout(sock) do
         redirect_stderr(sock) do
 
@@ -237,6 +237,8 @@ function serverRun(run, sock, shared, print_stack, fname)
                     Logging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), sock), Logging.Info))
                     add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
                     Base.eval(m, add_include)
+                    add_params =  Meta.parse(string("ARGS = ", args))
+                    Base.eval(m, add_params)
                     add_redirect = Meta.parse("const stdout=IOBuffer(); println(io, x...) = Base.println(io,x); println(x)=Base.println(stdout, x); println(io, x...)=Base.println(io, x); print(x)=Base.print(stdout, x); stdout")
                     out = Base.eval(m, add_redirect)
                     task = @async begin
@@ -286,15 +288,22 @@ function serverRunFile(sock, shared, print_stack)
         args_str = readline(sock)
         args = split(args_str, " ")
 
-        if !isempty(args) && !isempty(args[1])
-            append!(ARGS, args)
+        if !isempty(args) && isempty(args[1])
+            empty!(args)
+        end
+
+        # Add it to allow ArgParse and similar packages
+        empty!(ARGS)
+
+        for arg in args
+            push!(ARGS, arg)
         end
 
         first_time[] = true
 
         cd(dir) do
             content = read(fname, String)
-            serverRun(sock, shared, print_stack, fname) do mod
+            serverRun(sock, shared, print_stack, fname, args) do mod
                 include_string(mod, content)
             end
         end
@@ -302,7 +311,6 @@ function serverRunFile(sock, shared, print_stack)
         serverReplyError(sock, e)
     end
 
-    empty!(ARGS)
 end
 
 """
@@ -324,7 +332,7 @@ function serverRunExpr(sock, shared, print_stack)
         parsedExpr = Meta.parse(strip(expr))
 
         cd(dir) do
-            serverRun(sock, shared, print_stack, "") do mod
+            serverRun(sock, shared, print_stack, "",  String[]) do mod
                 Base.eval(mod, parsedExpr)
             end
         end
@@ -332,7 +340,6 @@ function serverRunExpr(sock, shared, print_stack)
         serverReplyError(sock, e)
     end
 
-    empty!(ARGS)
 end
 
 """
