@@ -251,6 +251,9 @@ function serverRun(run, sock, shared, print_stack, fname, args)
                 # Following code is not needed, the real problem was global ARGS, not
                 add_redirect = Meta.parse("const stdout=IOBuffer(); println(io, x...) = Base.println(io,x...); println(x)=Base.println(stdout, x); println(x...)=Base.println(stdout, x...); println(io, x...)=Base.println(io, x...); print(x...)=Base.print(stdout, x...); stdout")
                 out = Base.eval(m, add_redirect)
+                add_redirect_err = Meta.parse("const stderr=IOBuffer(); stderr")
+                err = Base.eval(m, add_redirect_err)
+
                 task = @async begin
                     while isopen(sock)
                         text = String(take!(out))
@@ -258,6 +261,15 @@ function serverRun(run, sock, shared, print_stack, fname, args)
                         sleep(0.5)
                     end
                 end
+                task2 = @async begin
+                    while isopen(sock)
+                        text = String(take!(err))
+                        print(sock, text)
+                        sleep(0.5)
+                    end
+                end
+                # add_logging = Meta.parse("using ExtraLogging; ExtraLogging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), stdout), Logging.Info))")
+                # Base.eval(m, add_logging)
                 run(m)
                 # If there is missing message I write it
                 text = String(take!(out))
@@ -265,7 +277,13 @@ function serverRun(run, sock, shared, print_stack, fname, args)
                 if !isempty(text)
                     print(sock, text)
                 end
-            end
+                # If there is missing message I write it
+                text = String(take!(err))
+
+                if !isempty(text)
+                    print(sock, text)
+                end
+             end
             end
         end
         println(sock, token_ok_end)
