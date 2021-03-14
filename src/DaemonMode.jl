@@ -226,7 +226,7 @@ function create_mylog(fname)
 end
 
 function serverRun(run, sock, shared, print_stack, fname)
-    redirect_stdout(sock) do
+ #   redirect_stdout(sock) do
         redirect_stderr(sock) do
 
             try
@@ -237,7 +237,19 @@ function serverRun(run, sock, shared, print_stack, fname)
                     Logging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), sock), Logging.Info))
                     add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
                     Base.eval(m, add_include)
+                    add_redirect = Meta.parse("const stdout=IOBuffer(); println(io, x...) = Base.println(io,x); println(x)=Base.println(stdout, x); println(io, x...)=Base.println(io, x); print(x)=Base.print(stdout, x); stdout")
+                    out = Base.eval(m, add_redirect)
+                    task = @async begin
+                        while isopen(sock)
+                            text = String(take!(out))
+                            print(sock, text)
+                            sleep(0.5)
+                        end
+                    end
                     run(m)
+                    # If there is missing message I write it
+                    text = String(take!(out))
+                    print(sock, text)
                 end
                 println(sock, token_ok_end)
 
@@ -249,7 +261,7 @@ function serverRun(run, sock, shared, print_stack, fname)
                 end
             end
 
-        end
+  #      end
     end
 
 end
