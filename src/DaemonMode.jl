@@ -39,7 +39,7 @@ Run the daemon, running all files and expressions sended by the client function.
 - print_stack: Print the complete stack when there is an error. By default it is true.
 - async: Run the clients in different clients, **Experimental**.
 """
-function serve(port=PORT, shared=missing; print_stack=true, async=false)
+function serve(port=PORT, shared=missing; print_stack=true, async=true)
     if (async)
         return serve_async(port, shared, print_stack=print_stack)
     else
