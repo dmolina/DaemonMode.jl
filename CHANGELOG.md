@@ -17,6 +17,17 @@ Changelog](http://keepachangelog.com/).
 ### Breaks
 
 
+## 0.1.6 - (2021-03-15)
+---
+
+### Changes
+* Improve documentation in relation with async and threads.
+
+
+### Fixes
+* Using @spawn instead of @async in async mode.
+
+
 ## 0.1.5 - (2021-05-14)
 
 ### Fixes
