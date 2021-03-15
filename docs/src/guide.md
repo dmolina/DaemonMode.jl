@@ -34,6 +34,48 @@ the only function.
 ```@docs
 ```
 
+# Running several clients at the same time
+
+In previous versions, the server run one task for each client. However, since
+v0.1.5 DaemonMode is able to run each client in parallel. However, you can run the
+server function with the parameter async=false to have the previous behaviour.
+
+```sh
+$  julia -e 'using DaemonMode; serve(async=false)'
+```
+
+With the optional parameter async=true to server, the server run each client in
+a new task.
+
+```sh
+$  julia -e 'using DaemonMode; serve(async=true)'
+```
+
+That command will allow to run different clients parallel, but it will use only one CPU. 
+
+If you want to use several threads, you can do:
+
+```sh
+$  julia -t auto -e 'using DaemonMode; serve(async=true)'
+```
+
+Auto allows DaemonMode to use all processors of the computer, but you can put 
+*-t 1*, *-t 2*, ...
+
+The async option have several advantages:
+
+- You can run any new client without waiting the previous close.
+
+- If one process ask for close the Daemon, it will wait until all clients have
+  been finished.
+  
+- With several threads (indicated with *-t*), you can run several clients in
+  different CPUs, without increasing the time for each client. If there is only
+  one process, the processing time will be divided between the different
+  clients.
+ 
+The main drawback is that the @show and logs in console can be send to the last task.
+
 # Typical errors
 
 ```sh
@@ -241,3 +283,4 @@ end
 
 Remember that the current directory is the directory in which julia command is
 run, so it is recommended to run in the same directory that the script with the include.
+
