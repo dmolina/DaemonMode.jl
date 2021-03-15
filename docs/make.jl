@@ -4,7 +4,7 @@ using Documenter
 makedocs(;
     modules=[DaemonMode],
     authors="Daniel Molina <dmolina@decsai.ugr.es>",
-    repo="https://github.com/dmolina/MoodleQuestions.jl/blob/{commit}{path}#L{line}",
+    repo="https://github.com/dmolina/DaemonMode.jl/blob/{commit}{path}#L{line}",
     sitename="DaemonMode.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
