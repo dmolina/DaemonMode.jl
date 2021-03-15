@@ -56,7 +56,7 @@ function serve_async(port=PORT, shared=missing; print_stack=true, nicely=true)
 
     while continue_server[] && isopen(server)
         sock = accept(server)
-        task = @async begin
+        task = Threads.@spawn begin
             local mode
             mode = readline(sock)
 
