@@ -3,7 +3,7 @@
 
 ![Build Status with Github Action](https://github.com/dmolina/DaemonMode.jl/workflows/Run%20tests/badge.svg)
 [![Documentation](https://github.com/dmolina/DaemonMode.jl/workflows/Documentation/badge.svg)](https://dmolina.github.io/DaemonMode.jl/dev/)
-
+![DOI:](https://zenodo.org/badge/doi/10.5281/zenodo.3902453.svg)
 
 # Introduction
 
