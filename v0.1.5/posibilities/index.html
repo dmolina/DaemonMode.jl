@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Posibilities · DaemonMode.jl</title><link rel="canonical" href="https://dmolina.github.io/DaemonMode.jl/posibilities/"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">DaemonMode.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Quick Start</a></li><li><a class="tocitem" href="../guide/">User Guide</a></li><li class="is-active"><a class="tocitem" href>Posibilities</a><ul class="internal"><li><a class="tocitem" href="#Error-Stack"><span>Error Stack</span></a></li><li><a class="tocitem" href="#Logging"><span>Logging</span></a></li><li><a class="tocitem" href="#Return-code"><span>Return code</span></a></li></ul></li><li><a class="tocitem" href="../reference/">Public API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Posibilities</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Posibilities</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/dmolina/DaemonMode.jl/blob/master/docs/src/posibilities.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Posibilities"><a class="docs-heading-anchor" href="#Posibilities">Posibilities</a><a id="Posibilities-1"></a><a class="docs-heading-anchor-permalink" href="#Posibilities" title="Permalink"></a></h1><p>This package allow users to run its source code a lot faster. However, you could have doubts about the limitations of running a script through DaemonMode. </p><p>This section is to prove you that you can do more than expected.</p><h2 id="Error-Stack"><a class="docs-heading-anchor" href="#Error-Stack">Error Stack</a><a id="Error-Stack-1"></a><a class="docs-heading-anchor-permalink" href="#Error-Stack" title="Permalink"></a></h2><p>Current version of Daemon can show the Error Stack in a very similar way than using directly julia. </p><ul><li><p>Colors: The message error is remarked using <a href="https://github.com/KristofferC/Crayons.jl">Crayons.jl</a>. </p></li><li><p>Number of calls: The calls due to DaemonMode are hidden, to improve  the readibility.</p></li></ul><p>For instance, with the following file bad.jl:</p><pre><code class="language-julia">function fun2(a)
+    println(a+b)
+end
+
+function fun1()
+    fun2(4)
+end
+
+fun1()</code></pre><p>Directly with julia:</p><pre><code class="language-sh">$ julia bad.jl
+ERROR: LoadError: UndefVarError: b not defined
+Stacktrace:
+ [1] fun2(::Int64) at /mnt/home/daniel/working/DaemonMode/test/bad.jl:2
+ [2] fun1() at /mnt/home/daniel/working/DaemonMode/test/bad.jl:6
+ [3] top-level scope at /mnt/home/daniel/working/DaemonMode/test/bad.jl:9
+ [4] include(::Function, ::Module, ::String) at ./Base.jl:380
+ [5] include(::Module, ::String) at ./Base.jl:368
+ [6] exec_options(::Base.JLOptions) at ./client.jl:296
+ [7] _start() at ./client.jl:506
+in expression starting at /mnt/home/daniel/working/DaemonMode/test/bad.jl:9</code></pre><p>or in color: <img src="../assets/julia_bad.png" alt="Results with julia"/></p><p>with DaemonMode it gaves:</p><pre><code class="language-none">$ julia -e &#39;using DaemonMode; runargs()&#39; bad.jl
+ERROR: LoadError: UndefVarError: b not defined
+Stacktrace:
+ [1] fun2 at /mnt/home/daniel/working/DaemonMode/test/bad.jl:2
+ [2] fun1 at /mnt/home/daniel/working/DaemonMode/test/bad.jl:6
+ [3] top-level scope at /mnt/home/daniel/working/DaemonMode/test/bad.jl:9</code></pre><p>or in color:</p><p><img src="../assets/jclient_bad.png" alt="Results with jclient"/></p><h2 id="Logging"><a class="docs-heading-anchor" href="#Logging">Logging</a><a id="Logging-1"></a><a class="docs-heading-anchor-permalink" href="#Logging" title="Permalink"></a></h2><p>The script can use Logging. There are two situations:</p><ul><li><p>The messages are written to a external file. </p></li><li><p>The messages are written to console. </p></li></ul><p>Both situations are working nicely. For instance, for the file <em>test_log1.jl</em>:</p><pre><code class="language-julia">using  Logging, LoggingExtras
+
+function msg()
+    @warn &quot;warning 1\nanother line\nlast one&quot;
+    @error &quot;error 1&quot;
+    @info &quot;info 1&quot;
+    @debug &quot;debug 1&quot;
+end
+
+msg()</code></pre><p>running directly with julia:</p><pre><code class="language-sh">$ julia test_log1.jl
+┌ Warning: warning 1
+│ another line
+│ last one
+└ @ Main ~/working/DaemonMode/test/test_log1.jl:4
+┌ Error: error 1
+└ @ Main ~/working/DaemonMode/test/test_log1.jl:5
+[ Info: info 1</code></pre><p>while in color:</p><p><img src="../assets/julia_log.png" alt="Logging with julia"/></p><p>running with client:</p><pre><code class="language-julia">$ juliaclient test_log1.jl
+ Warning: warning 1
+│ another line
+│ last one
+└ @ Main /mnt/home/daniel/working/DaemonMode/test/test_log1.jl: 4
+┌ Error: error 1
+└ @ Main /mnt/home/daniel/working/DaemonMode/test/test_log1.jl: 5
+┌ Info: info 1
+└ @ Main /mnt/home/daniel/working/DaemonMode/test/test_log1.jl: 6
+┌ Debug: debug 1
+└ @ Main /mnt/home/daniel/working/DaemonMode/test/test_log1.jl: 7</code></pre><p>or in color:</p><p><img src="../assets/jclient_log.png" alt="Logging with jclient"/></p><h2 id="Return-code"><a class="docs-heading-anchor" href="#Return-code">Return code</a><a id="Return-code-1"></a><a class="docs-heading-anchor-permalink" href="#Return-code" title="Permalink"></a></h2><p>juliaclient defined as:</p><p>alias juliaclient=&#39;julia –startup-file=no -e &quot;using DaemonMode; runargs()&quot;&#39;</p><p>return </p><ul><li>0 if the script runs without any problem.</li><li>1 if there is any unexpected problem.</li></ul><p>By example:</p><pre><code class="language-julia">$ jclient hello.jl 
+Hello, World!
+$ echo $?
+0
+$ jclient bad.jl 
+ERROR: LoadError: UndefVarError: b not defined
+Stacktrace:
+ [1] fun2 at /mnt/home/daniel/working/DaemonMode/test/bad.jl:2
+ [2] fun1 at /mnt/home/daniel/working/DaemonMode/test/bad.jl:6
+ [3] top-level scope at /mnt/home/daniel/working/DaemonMode/test/bad.jl:9
+
+$ echo $?
+1</code></pre><p><a href="## Parameter Options"></a></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../guide/">« User Guide</a><a class="docs-footer-nextpage" href="../reference/">Public API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 16 March 2021 19:51">Tuesday 16 March 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

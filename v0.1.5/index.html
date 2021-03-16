@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Quick Start · DaemonMode.jl</title><link rel="canonical" href="https://dmolina.github.io/DaemonMode.jl/"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">DaemonMode.jl</span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Quick Start</a><ul class="internal"><li class="toplevel"><a class="tocitem" href="#Usage"><span>Usage</span></a></li><li class="toplevel"><a class="tocitem" href="#Process"><span>Process</span></a></li><li class="toplevel"><a class="tocitem" href="#Example"><span>Example</span></a></li><li class="toplevel"><a class="tocitem" href="#Features"><span>Features</span></a></li><li class="toplevel"><a class="tocitem" href="#TODO-(features-in-the-roadmap)"><span>TODO (features in the roadmap)</span></a></li></ul></li><li><a class="tocitem" href="guide/">User Guide</a></li><li><a class="tocitem" href="posibilities/">Posibilities</a></li><li><a class="tocitem" href="reference/">Public API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Quick Start</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Quick Start</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/dmolina/DaemonMode.jl/blob/master/docs/src/index.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Introduction"><a class="docs-heading-anchor" href="#Introduction">Introduction</a><a id="Introduction-1"></a><a class="docs-heading-anchor-permalink" href="#Introduction" title="Permalink"></a></h1><p>Julia is a great language, but the Just-in-Time compiler implies that loading a package could takes a considerable time, this is called the <em>first plot problem</em>. </p><p>It is true that this time is only required for the first time (and there are options, like using and the package <a href="https://github.com/timholy/Revise.jl">Revise</a>). However, it is a great disadvantage when we want to use Julia to create small scripts.</p><p>This package solve that problem. Inspired in the daemon-mode of Emacs, this package create a server/client model. This allow julia to run scripts a lot quickly scripts in Julia, because the package is maintained in memory between the run of several scripts (or run the same script several times).</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>This package has been mentioned in JuliaCon 2020, Thank you, Fredrik Ekre!</p><p><a href="https://www.youtube.com/watch?v=IuwxE3m0_QQ"><img src="https://dmolina.github.io/DaemonMode.jl/dev/assets/juliacon.png" alt="DaemonMode in JuliaCon"/></a></p></div></div><h1 id="Usage"><a class="docs-heading-anchor" href="#Usage">Usage</a><a id="Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Usage" title="Permalink"></a></h1><ul><li>The server is the responsible of running all julia scripts.</li></ul><pre><code class="language-julia">  julia -e &#39;using DaemonMode; serve()&#39;</code></pre><ul><li>A client, that send to the server the file to run, and return the output obtained.</li></ul><pre><code class="language-julia">  julia -e &#39;using DaemonMode; runargs()&#39; program.jl &lt;arguments&gt;</code></pre><p>you can use an alias </p><pre><code class="language-sh">  alias juliaclient=&#39;julia -e &quot;using DaemonMode; runargs()&quot;&#39;</code></pre><p>then, instead of <code>julia program.jl</code> you can do <code>juliaclient program.jl</code>. The output should be the same, but with a lot less time.</p><h1 id="Process"><a class="docs-heading-anchor" href="#Process">Process</a><a id="Process-1"></a><a class="docs-heading-anchor-permalink" href="#Process" title="Permalink"></a></h1><p>The process is the following:</p><ol><li><p>The client process sends the program <em>program.jl</em> with the required arguments to the server.</p></li><li><p>The server receives the program name, and run it, returning the output to the client process. </p></li><li><p>The client process receives the output and show it to the console.</p></li></ol><h1 id="Example"><a class="docs-heading-anchor" href="#Example">Example</a><a id="Example-1"></a><a class="docs-heading-anchor-permalink" href="#Example" title="Permalink"></a></h1><p>Supose that we have the script <em>test.jl</em></p><pre><code class="language-julia">using CSV, DataFrames
+
+fname = only(ARGS)
+df = CSV.File(fname) |&gt; DataFrame
+println(first(df, 3))</code></pre><p>The normal method is:</p><pre><code class="language-sh">$ time julia test.jl tsp_50.csv
+...
+3×2 DataFrame
+│ Row │ x        │ y          │
+│     │ Float64  │ Float64    │
+├─────┼──────────┼────────────┤
+│ 1   │ 0.420169 │ 0.628786   │
+│ 2   │ 0.892219 │ 0.673288   │
+│ 3   │ 0.530688 │ 0.00151249 │
+
+real	0m18.831s
+user	0m18.670s
+sys     0m0.476s</code></pre><p>Only loading the CSV, DataFrames, and reading a simple file takes 18 seconds in my computer (I accept donnations :-)). Every time that you run the program is going to take these 18 seconds. </p><p>using DaemonMode:</p><pre><code class="language-sh">$ julia -e &#39;using DaemonMode; serve()&#39; &amp;
+$ time juliaclient test.jl tsp_50.csv
+3×2 DataFrames.DataFrame
+│ Row │ x        │ y          │
+│     │ Float64  │ Float64    │
+├─────┼──────────┼────────────┤
+│ 1   │ 0.420169 │ 0.628786   │
+│ 2   │ 0.892219 │ 0.673288   │
+│ 3   │ 0.530688 │ 0.00151249 │
+
+real	0m18.596s
+user	0m0.329s
+sys	0m0.318s</code></pre><p>But next times, it only use:</p><pre><code class="language-sh">$ time juliaclient test.jl tsp_50.csv
+3×2 DataFrames.DataFrame
+│ Row │ x        │ y          │
+│     │ Float64  │ Float64    │
+├─────┼──────────┼────────────┤
+│ 1   │ 0.420169 │ 0.628786   │
+│ 2   │ 0.892219 │ 0.673288   │
+│ 3   │ 0.530688 │ 0.00151249 │
+
+real	0m0.355s
+user	0m0.336s
+sys	0m0.317s</code></pre><p>A reduction from 18s to 0.3s, the next runs only time a 2% of the original time. </p><p>Then you can change the file:</p><pre><code class="language-julia">using CSV, DataFrames
+
+fname = only(ARGS)
+df = CSV.File(fname) |&gt; DataFrame
+println(last(df, 10))</code></pre><p>Then, </p><pre><code class="language-sh">$ time juliaclient test2.jl tsp_50.csv
+10×2 DataFrames.DataFrame
+│ Row │ x        │ y        │
+│     │ Float64  │ Float64  │
+├─────┼──────────┼──────────┤
+│ 1   │ 0.25666  │ 0.405932 │
+│ 2   │ 0.266308 │ 0.426364 │
+│ 3   │ 0.865423 │ 0.232437 │
+│ 4   │ 0.462485 │ 0.049489 │
+│ 5   │ 0.994926 │ 0.887222 │
+│ 6   │ 0.867568 │ 0.302558 │
+│ 7   │ 0.475654 │ 0.607708 │
+│ 8   │ 0.18198  │ 0.592476 │
+│ 9   │ 0.327458 │ 0.354397 │
+│ 10  │ 0.765927 │ 0.806685 │
+
+real	0m0.372s
+user	0m0.369s
+sys	0m0.300s</code></pre><h1 id="Features"><a class="docs-heading-anchor" href="#Features">Features</a><a id="Features-1"></a><a class="docs-heading-anchor-permalink" href="#Features" title="Permalink"></a></h1><ul><li><p>[X] Performance, because packages are maintained in memory. This is especially interesting with common external packages like CSV.jl, DataFrames.jl, ...</p></li><li><p>[X] The code is run using the current directory as working directory.</p></li><li><p>[X] Robust, if the file has an error, the server continues working (for other scripts, stops for your current one).</p></li><li><p>[X] It accepts parameters without problems.</p></li><li><p>[X] Run complete file and also specific code.</p></li><li><p>[X] Run in multiple modules to avoid conflicts of names.</p></li><li><p>[X] logging output in console working nicely.</p></li><li><p>[X] Return 1 when an error occurs.</p></li><li><p>[X] Multi-threading version.</p></li></ul><h1 id="TODO-(features-in-the-roadmap)"><a class="docs-heading-anchor" href="#TODO-(features-in-the-roadmap)">TODO (features in the roadmap)</a><a id="TODO-(features-in-the-roadmap)-1"></a><a class="docs-heading-anchor-permalink" href="#TODO-(features-in-the-roadmap)" title="Permalink"></a></h1><ul><li><p>[ ] Allow to use function exit in client.</p></li><li><p>[ ] Fix redirect with several tasks.</p></li><li><p>[ ] Update isinteractive() to show that the run is run in a interactive way.</p></li><li><p>[ ] Remote version (in which the Server would be in a different computer of the client).</p></li><li><p>[ ] Automatic installation of required packages.</p></li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="guide/">User Guide »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 16 March 2021 19:51">Tuesday 16 March 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
