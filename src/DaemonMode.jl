@@ -407,8 +407,10 @@ function runexpr(expr::AbstractString ; output = stdout, port = PORT)
         println(sock, expr)
         println(sock, token_end)
 
+        token_size = length(token_ok_end)
         line = readline(sock)
-        while (line != token_ok_end && line != token_error_end)
+
+        while (length(line) < token_size || !occursin(token_end, line))
             println(output, line)
             line = readline(sock)
         end
