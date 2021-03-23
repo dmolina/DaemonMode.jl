@@ -5,17 +5,19 @@ This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a
 Changelog](http://keepachangelog.com/).
 
 
-## Unreleased
+## 0.1.7 - (2021-03-23)
 ---
 
 ### New
-* Add option threaded to allow activate or desactivate to use threads with async
+* Add option threaded to allow activate or desactivate to use threads with async.
+* The function exit() can be used inside the client.
 
 ### Changes
 
-### Fixes
 
-### Breaks
+### Fixes
+* Usage of exit() function inside the client.
+* Error depending on the order of sending to socket the output and/or the return code.
 
 
 ## 0.1.6 - (2021-03-15)

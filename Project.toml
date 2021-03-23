@@ -1,7 +1,7 @@
 name = "DaemonMode"
 uuid = "d749ddd5-2b29-4920-8305-6ff5a704e36e"
 authors = ["Daniel Molina"]
-version = "0.1.6"
+version = "0.1.7"
 
 [deps]
 Crayons = "a8cc5b0e-0ffa-5ad4-8c14-923d3ee1735f"
