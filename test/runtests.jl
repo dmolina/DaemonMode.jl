@@ -25,6 +25,16 @@ function test_evalfile(file; port)
     return output
 end
 
+function test_evalcode_file(file; port)
+    task = init_server(port)
+    buffer = IOBuffer()
+    code = runfile(file, output=buffer, port=port)
+    output = String(take!(buffer))
+    end_server(task, port)
+    return output, code
+end
+
+
 function test_evalfiles(files; port)
     task = init_server(port)
     buffer = IOBuffer()
@@ -38,8 +48,6 @@ function test_evalfiles(files; port)
     end_server(task, port)
     return outputs
 end
-
-
 
 @testset "Start Server" begin
     port = 3001
@@ -70,7 +78,6 @@ end
     runexpr(expr, output=buffer, port=port)
     output = String(take!(buffer))
     @test output == "1\n2\n3\n"
-
 
     buffer = IOBuffer()
     expr = "begin
@@ -155,4 +162,16 @@ end
     lines = split(output, "\n")
     @test lines[1] == "String[]"
 end
+
+
+@testset "exit" begin
+    output, code = test_evalcode_file("test_exit_0.jl", port=3009)
+    @test output == "Before\n"
+    @test code == 0
+    output, code = test_evalcode_file("test_exit_1.jl", port=3009)
+    @test output == "Before\n"
+    @test code == 1
+end
+
+
 
