@@ -37,18 +37,41 @@ Run the daemon, running all files and expressions sended by the client function.
 - shared: Share the environment between calls. If it is false (default) each run
   has its own environment, so the variables/functions are not shared.
 - print_stack: Print the complete stack when there is an error. By default it is true.
-- async: Run the clients in different clients, **Experimental**.
+- async: Run the clients in different clients at the same time.
+- threaded: Run each client in a new thread (true by default if async is true).
 """
-function serve(port=PORT, shared=missing; print_stack=true, async=true)
+function serve(port=PORT, shared=missing; print_stack=true, async=true, threaded::Union{Bool,Nothing}=nothing)
+    # threaded implies async by default
+    if isnothing(threaded)
+        threaded = async
+    end
+
     if (async)
-        return serve_async(port, shared, print_stack=print_stack)
+        return serve_async(port, shared, print_stack=print_stack, threaded=threaded)
     else
         return serve_sync(port, shared; print_stack=print_stack)
     end
 
 end
 
-function serve_async(port=PORT, shared=missing; print_stack=true, nicely=true)
+function async_process(sock, shared, print_stack, continue_server)
+    local mode
+    mode = readline(sock)
+
+    if mode == token_runfile
+        serverRunFile(sock, coalesce(shared, false), print_stack)
+    elseif mode == token_runexpr
+        serverRunExpr(sock, coalesce(shared, true), print_stack)
+    elseif mode == token_client_end
+        println(sock, token_server_async_end)
+        continue_server[] = false
+    else
+        println(sock, "Error, unrecognised mode, expected (\"runFile()\", \"runExpr()\" or \"exit()\", but received \"$mode\"")
+        continue_server[] = false
+    end
+end
+
+function serve_async(port=PORT, shared=missing; print_stack=true, nicely=true, threaded::Bool)
     server = Sockets.listen(Sockets.localhost, port)
     current = pwd()
     continue_server = Threads.Atomic{Bool}(true)
@@ -56,20 +79,14 @@ function serve_async(port=PORT, shared=missing; print_stack=true, nicely=true)
 
     while continue_server[] && isopen(server)
         sock = accept(server)
-        task = Threads.@spawn begin
-            local mode
-            mode = readline(sock)
 
-            if mode == token_runfile
-                serverRunFile(sock, coalesce(shared, false), print_stack)
-            elseif mode == token_runexpr
-                serverRunExpr(sock, coalesce(shared, true), print_stack)
-            elseif mode == token_client_end
-                println(sock, token_server_async_end)
-                continue_server[] = false
-            else
-                println(sock, "Error, unrecognised mode, expected (\"runFile()\", \"runExpr()\" or \"exit()\", but received \"$mode\"")
-                continue_server[] = false
+        if threaded
+            task = Threads.@spawn begin
+                async_process(sock, shared, print_stack, continue_server)
+            end
+        else
+            task = @async begin
+                async_process(sock, shared, print_stack, continue_server)
             end
         end
 
@@ -113,8 +130,6 @@ function serve_sync(port=PORT, shared=missing; print_stack=true)
 
     close(server)
 end
-
-
 
 function myshowerror(sock::IO, e)
     io = IOBuffer()
@@ -358,11 +373,10 @@ function serverRunExpr(sock, shared, print_stack)
     try
         dir = readline(sock)
         expr = readuntil(sock, token_end) # Read until token_end to handle multi-line expressions
-        parsedExpr = Meta.parse(strip(expr))
 
         cd(dir) do
             serverRun(sock, shared, print_stack, "",  String[]) do mod
-                Base.eval(mod, parsedExpr)
+                include_string(mod, strip(expr))
             end
         end
     catch e

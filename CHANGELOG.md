@@ -9,6 +9,7 @@ Changelog](http://keepachangelog.com/).
 ---
 
 ### New
+* Add option threaded to allow activate or desactivate to use threads with async
 
 ### Changes
 

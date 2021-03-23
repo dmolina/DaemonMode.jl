@@ -7,8 +7,10 @@ This package has been developed taking in account the usage easily.
 - The server is the responsible of running all julia scripts.
  
   ```sh
-  julia -e 'using DaemonMode; serve()'
+  julia -t auto -e 'using DaemonMode; serve()'
 ```
+
+The **-t auto** allow clients to use several threads if they want it.
 
 - A client, that send to the server the file to run, and return the output
   obtained.
@@ -37,39 +39,53 @@ the only function.
 # Running several clients at the same time
 
 In previous versions, the server run one task for each client. However, since
-v0.1.5 DaemonMode is able to run each client in parallel. However, you can run the
-server function with the parameter async=false to have the previous behaviour.
+v0.1.5 DaemonMode is able to run each client in parallel. However, you can run
+the server function with the parameter async=false to have the previous
+behaviour. In all following examples, I use **-t auto** to allow julia to use
+different CPUs.
 
 ```sh
 $  julia -e 'using DaemonMode; serve(async=false)'
 ```
 
-With the optional parameter async=true to server, the server run each client in
-a new task.
+In that way, the juliaserver only work in a only CPU, and only each client is
+running at the same time.
+
+The recommended way of running is always using **-t auto**.
 
 ```sh
-$  julia -e 'using DaemonMode; serve(async=true)'
+$  julia -t auto -e 'using DaemonMode; serve(async=false)'
 ```
 
-That command will allow to run different clients parallel, but it will use only one CPU. 
+In that way, each client could use different CPUs, but only each client is
+running at the same time. However, the current client can run different threads.
 
-If you want to use several threads, you can do:
+With the optional parameter async=true to server, the server run each client in
+a new task, but only using a CPU.
 
 ```sh
 $  julia -t auto -e 'using DaemonMode; serve(async=true)'
 ```
 
-Auto allows DaemonMode to use all processors of the computer, but you can put 
-*-t 1*, *-t 2*, ...
+That command will allow to run different clients in parallel. It is using
+several threads in parallel by default. If you want to run different clients in
+parallel but always at the same CPU (pure async mode), you can do:
 
-The async option have several advantages:
+```sh
+$  julia -t auto -e 'using DaemonMode; serve(async=true, threaded=false)'
+```
+
+Auto allows DaemonMode to use all processors of the computer, but you can put
+*-t 1*, *-t 2*, ... It is the default mode.
+
+The parallel option have several advantages:
 
 - You can run any new client without waiting the previous close.
 
 - If one process ask for close the Daemon, it will wait until all clients have
   been finished.
   
-- With several threads (indicated with *-t*), you can run several clients in
+- With several threads (threaded instead of async), you can run several clients in
   different CPUs, without increasing the time for each client. If there is only
   one process, the processing time will be divided between the different
   clients.
