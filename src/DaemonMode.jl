@@ -241,6 +241,8 @@ function create_mylog(fname)
 end
 
 function serverRun(run, sock, shared, print_stack, fname, args)
+    error = false
+
     try
         if shared
             redirect_stdout(sock) do
@@ -251,57 +253,96 @@ function serverRun(run, sock, shared, print_stack, fname, args)
         else
             redirect_stdout(sock) do
                 redirect_stderr(sock) do
-                m = Module()
-                Logging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), sock), Logging.Info))
-                add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
-                Base.eval(m, add_include)
+                    m = Module()
+                    Logging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), sock), Logging.Info))
+                    add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
+                    Base.eval(m, add_include)
 
-                if !isempty(args)
-                    add_params =  Meta.parse(string("ARGS = [\"", join(args, "\",\""), "\"]"))
-                else
-                    add_params =  Meta.parse(string("empty!(ARGS)"))
-                end
+                    if !isempty(args)
+                        add_params =  Meta.parse(string("ARGS = [\"", join(args, "\",\""), "\"]"))
+                    else
+                        add_params =  Meta.parse(string("empty!(ARGS)"))
+                    end
 
-                Base.eval(m, add_params)
-                # Following code is not needed, the real problem was global ARGS, not
-                add_redirect = Meta.parse("const stdout=IOBuffer(); println(io, x...) = Base.println(io,x...); println(x)=Base.println(stdout, x); println(x...)=Base.println(stdout, x...); println(io, x...)=Base.println(io, x...); print(x...)=Base.print(stdout, x...); stdout")
-                out = Base.eval(m, add_redirect)
-                add_redirect_err = Meta.parse("const stderr=IOBuffer(); stderr")
-                err = Base.eval(m, add_redirect_err)
+                    Base.eval(m, add_params)
+                    add_exit = Meta.parse("struct SystemExit <: Exception code::Int32 end; exit(x)=throw(SystemExit(x))")
+                    Base.eval(m, add_exit)
+                    # Following code is not needed, the real problem was global ARGS, not
+                    add_redirect = Meta.parse("const stdout=IOBuffer(); println(io, x...) = Base.println(io,x...); println(x)=Base.println(stdout, x); println(x...)=Base.println(stdout, x...); println(io, x...)=Base.println(io, x...); print(x...)=Base.print(stdout, x...); stdout")
+                    out = Base.eval(m, add_redirect)
+                    add_redirect_err = Meta.parse("const stderr=IOBuffer(); stderr")
+                    err = Base.eval(m, add_redirect_err)
+                    running = true
 
-                task = @async begin
-                    while isopen(sock)
-                        text = String(take!(out))
+                    try
+                        task = @async begin
+                            while isopen(out) && isopen(sock)
+                                text = String(take!(out))
+                                print(sock, text)
+
+                                if !running
+                                    close(out)
+                                end
+                                sleep(0.3)
+                            end
+                        end
+                        task2 = @async begin
+                            while isopen(err)  && isopen(sock)
+                                text = String(take!(err))
+                                print(sock, text)
+
+                                if !running
+                                    close(err)
+                                end
+                                sleep(0.3)
+                            end
+                        end
+                        run(m)
+                        running = false
+
+                        # while isopen(out) && isopen(err)
+                        #     println("Espero")
+                        #     sleep(0.1)
+                        # end
+                    catch e
+                        running = false
+                        e_str = string(e)
+                        if occursin("SystemExit", e_str)
+                            # Wait for pushing messages
+                            if occursin("(0)", e_str)
+                                error = false
+                            else
+                                error = true
+                            end
+                        else
+                            error = true
+                            rethrow(e)
+                        end
+                    end
+                    # If there is missing message I write it
+                    text = String(take!(out))
+
+                    if !isempty(text)
                         print(sock, text)
-                        sleep(0.5)
+                    end
+                    # If # TODO: here is missing message I write it
+                    text = String(take!(err))
+
+                    if !isempty(text)
+                        print(sock, text)
                     end
                 end
-                task2 = @async begin
-                    while isopen(sock)
-                        text = String(take!(err))
-                        print(sock, text)
-                        sleep(0.5)
-                    end
-                end
-                # add_logging = Meta.parse("using ExtraLogging; ExtraLogging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), stdout), Logging.Info))")
-                # Base.eval(m, add_logging)
-                run(m)
-                # If there is missing message I write it
-                text = String(take!(out))
-
-                if !isempty(text)
-                    print(sock, text)
-                end
-                # If there is missing message I write it
-                text = String(take!(err))
-
-                if !isempty(text)
-                    print(sock, text)
-                end
-             end
             end
+
         end
-        println(sock, token_ok_end)
+
+        # Return depending of error code
+        if !error
+            println(sock, token_ok_end)
+        else
+            println(sock, token_error_end)
+        end
+
     catch e
         if print_stack
             serverReplyError(sock, e, catch_backtrace(), fname)
