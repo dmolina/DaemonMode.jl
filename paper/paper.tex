@@ -1,0 +1,105 @@
+% JuliaCon proceedings template
+\documentclass{juliacon}
+\setcounter{page}{1}
+
+\begin{document}
+
+\input{header}
+
+\maketitle
+
+\begin{abstract}
+
+  One of the disadvantages most perceived by new users is the well-known
+  time-to-first plot problem, the perceived initial time for running a program
+  in Julia, mainly due to the compilation phase. While it is true that this time
+  is being reduced, it is still a problem to use Julia as a language to create
+  scripts, specially when it is needed to load packages (like CSV or DataFrames,
+  very common in data science scripts). This package reduce greatly that
+  perceived time by the following mechanism: All the programs can be run by a
+  process in Julia, called daemon, and there is a script, the client, that send
+  the code to run through sockets to the first one. In that way, all scripts are
+  run by in the same process, so they run a lot faster because the packages were
+  loaded only once (when the first script is run). As result, this package allow
+  scripts in julia to be run faster even small scripts or scripts using many
+  packages.
+\end{abstract}
+
+\section{Introduction}
+
+Julia is a emerging open-source programming language designed to be high-level
+language programming but capable of high-performance computing
+\cite{bezansonJuliaFreshApproach2017a}. It is as easy to use as Python and/or Matlab
+maintaining a performance comparable to lower languages like C/C++.
+
+Julia is able to obtain very good performance because it uses a Just-In-Time,
+JIT, interpreter than compile first the code and later this compiled code is
+run. This is a great difference of time, because the code that run is compiled
+and optimized. It is true that there are JIT interpreter for other languages
+(one of the most popular could be Pypy\footnote{\url{https://www.pypy.org/}} for
+Python \cite{liAssessingOptimizingPerformance2019}), but Julia was designed
+considering performance at difference of Python, whose flexibility reduce the
+possibilities of JIT interpreter. A clear signal of the good performance is
+that the majority of packages available in Julia have been developed in Julia,
+not in a low-level language like C/C++.
+
+The main drawback of that mechanism is the initial time that takes that process,
+because not only implies to compile the main program, but also the
+libraries/packages used. This time is called the \textit{first plot problem},
+and it can be a great disappointment for users attracted by its greater
+efficiency, since in short programs the time due to JIT can imply a considerable
+delay, giving a bad impression to new users. It is true that this time is only
+initial, and developers are tackling it, but for many users it is still an important problem.
+In other languages, like Python, the majority of the libraries are compiled, so
+they has not that problem.
+
+The previous problem is particularly a great disadvantage when we want to use
+Julia to create small scripts. Python is very used in small scripts, in
+particular in Data Science. Julia could be useful for them also, specially
+considering good packages/libraries like DataFrames.jl, MLJ, or Flux. However,
+the initial time of these libraries is considerable, so the \textit{first plot
+  problem} can be an handicap to use Julia instead of Python. One option is to
+use the
+\href{https://github.com/JuliaLang/PackageCompiler.jl}{PackageCompiler}\footnote{\url{https://github.com/JuliaLang/PackageCompiler.jl}}
+package, but in that case all libraries should be compiled when any of them have
+a new version.
+
+The package presented in this paper,
+\href{https://github.com/dmolina/DaemonMode.jl/}{DaemonMode.jl}, was designed to
+solve that problem. Inspired in the daemon/client model used by previous
+programs (in particular, in Emacs), this package allow users to easily run the
+Julia using a server/client model connected by sockets. The idea is to have a
+only Julia process, called Daemon, running the different scripts we want to run,
+and using a client program that send the files to run to the daemon program.
+Because the different programs are run in the same process, the libraries are
+been only compiled first time they are loaded, and for next scripts they are not
+compiled. The impression that it gives to the user is great reduction in time
+running scripts, making Julia a clear alternative.
+
+This paper is structured as following: In Section \ref{sec:usage}, the usage of
+the package is described, both simple and advanced. In Section \ref{parallel} we
+are going to . In Section \ref{sec:details}, several technical usage is
+described, giving special session. 
+
+\section{Simple and Advanced Usage}
+\label{sec:usage}
+
+\section{Parallelism usage}
+\label{sec:parallel}
+
+\section{Technical details}
+\label{sec:technicals}
+
+\section{Measure of the performance}
+\label{sec:performance}
+
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+
+\input{bib.tex}
+
+\end{document}
+
+% Inspired by the International Journal of Computer Applications template
