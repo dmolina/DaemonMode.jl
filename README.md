@@ -268,11 +268,13 @@ The main drawback is that the @show and logs in console can be send to the last 
 
 - [X] Multi-threading version.
 
+- [X] Fix redirect with several tasks.
+
+- [X] Allow to use function exit in client.
+
+
 # TODO
 
-- [ ] Allow to use function exit in client.
-
-- [ ] Fix redirect with several tasks.
 
 - [ ] Update isinteractive() to show that the run is run in a interactive way.
 

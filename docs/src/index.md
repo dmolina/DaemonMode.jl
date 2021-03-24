@@ -183,11 +183,11 @@ sys	0m0.300s
 
 - [X] Multi-threading version.
 
+- [X] Allow to use function exit in client.
+
+- [X] Fix redirect with several tasks.
+
 # TODO (features in the roadmap)
-
-- [ ] Allow to use function exit in client.
-
-- [ ] Fix redirect with several tasks.
 
 - [ ] Update isinteractive() to show that the run is run in a interactive way.
 
