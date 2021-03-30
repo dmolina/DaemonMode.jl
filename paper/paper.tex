@@ -1,5 +1,7 @@
 % JuliaCon proceedings template
 \documentclass{juliacon}
+\usepackage{booktabs}
+\usepackage{subcaption}
 \setcounter{page}{1}
 
 \begin{document}
@@ -16,12 +18,12 @@
   is being reduced, it is still a problem to use Julia as a language to create
   scripts, specially when it is needed to load packages (like CSV or DataFrames,
   very common in data science scripts). This package reduce greatly that
-  perceived time by the following mechanism: All the programs can be run by a
+  perceived time by the following mechanism: Yhe programs can be run by a
   process in Julia, called daemon, and there is a script, the client, that send
   the code to run through sockets to the first one. In that way, all scripts are
   run by in the same process, so they run a lot faster because the packages were
   loaded only once (when the first script is run). As result, this package allow
-  scripts in julia to be run faster even small scripts or scripts using many
+  scripts in julia to be run faster, even small scripts or scripts using many
   packages.
 \end{abstract}
 
@@ -30,12 +32,12 @@
 Julia is a emerging open-source programming language designed to be high-level
 language programming but capable of high-performance computing
 \cite{bezansonJuliaFreshApproach2017a}. It is as easy to use as Python and/or Matlab
-maintaining a performance comparable to lower languages like C/C++.
+maintaining a performance comparable to low-level languages like C/C++.
 
 Julia is able to obtain very good performance because it uses a Just-In-Time,
-JIT, interpreter than compile first the code and later this compiled code is
+JIT, compiler than compile first the code and later this compiled code is
 run. This is a great difference of time, because the code that run is compiled
-and optimized. It is true that there are JIT interpreter for other languages
+and optimized. It is true that there are JIT compilers for other languages
 (one of the most popular could be Pypy\footnote{\url{https://www.pypy.org/}} for
 Python \cite{liAssessingOptimizingPerformance2019}), but Julia was designed
 considering performance at difference of Python, whose flexibility reduce the
@@ -45,19 +47,19 @@ not in a low-level language like C/C++.
 
 The main drawback of that mechanism is the initial time that takes that process,
 because not only implies to compile the main program, but also the
-libraries/packages used. This time is called the \textit{first plot problem},
+libraries/packages used. This time is called the \textit{time to first plot problem},
 and it can be a great disappointment for users attracted by its greater
 efficiency, since in short programs the time due to JIT can imply a considerable
 delay, giving a bad impression to new users. It is true that this time is only
 initial, and developers are tackling it, but for many users it is still an important problem.
 In other languages, like Python, the majority of the libraries are compiled, so
-they has not that problem.
+they do not have that problem.
 
 The previous problem is particularly a great disadvantage when we want to use
 Julia to create small scripts. Python is very used in small scripts, in
-particular in Data Science. Julia could be useful for them also, specially
+particular in data science. Julia could be useful for them also, specially
 considering good packages/libraries like DataFrames.jl, MLJ, or Flux. However,
-the initial time of these libraries is considerable, so the \textit{first plot
+the initial time of these libraries is considerable, so the \textit{time to first plot
   problem} can be an handicap to use Julia instead of Python. One option is to
 use the
 \href{https://github.com/JuliaLang/PackageCompiler.jl}{PackageCompiler}\footnote{\url{https://github.com/JuliaLang/PackageCompiler.jl}}
@@ -67,36 +69,617 @@ a new version.
 The package presented in this paper,
 \href{https://github.com/dmolina/DaemonMode.jl/}{DaemonMode.jl}, was designed to
 solve that problem. Inspired in the daemon/client model used by previous
-programs (in particular, in Emacs), this package allow users to easily run the
-Julia using a server/client model connected by sockets. The idea is to have a
-only Julia process, called Daemon, running the different scripts we want to run,
+programs (in particular, in Emacs), this package allows users to easily run 
+Julia using a server/client model connected by sockets. The idea is to have just
+one Julia process, called Daemon, running the different scripts we want to run,
 and using a client program that send the files to run to the daemon program.
 Because the different programs are run in the same process, the libraries are
-been only compiled first time they are loaded, and for next scripts they are not
-compiled. The impression that it gives to the user is great reduction in time
+have been previously compiled the first time they are loaded, and for next scripts they are not
+compiled again. The impression that it gives to the user is great reduction in time
 running scripts, making Julia a clear alternative.
 
-This paper is structured as following: In Section \ref{sec:usage}, the usage of
-the package is described, both simple and advanced. In Section \ref{parallel} we
-are going to . In Section \ref{sec:details}, several technical usage is
-described, giving special session. 
+This paper is structured as following: in Section \ref{sec:usage}, the usage of
+the package is described. In Section \ref{sec:performance}, we are going to
+compare the improvement that can be obtained with several examples. In Section
+\ref{sec:details}, we introduce several technical details about the
+implementation of the package. Finally, in
+Section \ref{sec:conclusions}, we briefly describe the main conclusions
+obtained.
 
 \section{Simple and Advanced Usage}
 \label{sec:usage}
 
-\section{Parallelism usage}
+In this section, we are going to describe the usage of the package. The goal of
+this section is not to give a complete documentation, because this is already
+documented in the official page
+\footnote{\url{https://dmolina.github.io/DaemonMode.jl/dev/}}, but mainly for
+doing a review of the principal features of the proposed package.
+
+\subsection{Install and running}
+\label{sec:install}
+
+Because the package is in the Julia Official Repository, you can install it 
+directly with:
+
+
+\begin{minipage}[\textwidth]{\linewidth}
+  \begin{lstlisting}
+julia> using Pkg
+julia> Pkg.add("DaemonMode")
+  \end{lstlisting}
+\end{minipage}
+
+This installs also several (few) dependencies automatically.
+
+Next, it is required to run the daemon. The daemon is the program responsible of
+running all julia scripts. It can be started run with the following sentence:
+
+\begin{lstlisting}
+$ julia -t auto -e 'using DaemonMode; serve()'
+\end{lstlisting}
+
+The \textit{-t auto} allows clients to use several threads if they want it. More
+details will be presented in Section \ref{sec:parallel}.
+
+Because it is very useful to run it, we recommend to create an alias or a small 
+script as \textit{juliaserver}, defined as (Linux version):
+
+\begin{lstlisting}
+#!/usr/bin/env julia
+julia -t auto -e 'using DaemonMode; serve()' &  
+\end{lstlisting}
+
+Then, the daemon can be run doing:
+
+\begin{lstlisting}
+$ juliaserver
+\end{lstlisting}
+
+To run a script you can create an alias or a program jclient as:
+
+\begin{lstlisting}
+#!/usr/bin/env bash
+julia -e 'using DaemonMode; runargs()' $*
+\end{lstlisting}
+
+Then, in order to run a script, instead of:
+
+\begin{lstlisting}
+$ julia program.jl [arguments...]
+\end{lstlisting}
+
+You can do:
+
+\begin{lstlisting}
+$ jclient program.jl [arguments...]
+\end{lstlisting}
+
+All output and error messages of running the program will be shown in the
+console in which jclient is run.
+
+The package also allows us to run specific source code:
+
+\begin{lstlisting}
+  $ julia -e 'using ...; runexpr("println(3+4)")' 
+\end{lstlisting}
+
+In order to run it, the daemon program must be running. If not, you will
+received a error indicating that it can be connected by the Daemon.
+
+It is important take into account that both, daemon and clients, must be run in
+the same computer. It has been considered to allow running each one in different
+computers, for future works.
+
+\subsection{Different environments}
+\label{sec:contexts}
+
+It is usual in Julia to work in different environments, in which each of them
+could have installed different libraries, or even different and conflicted
+versions of the same libraries.
+
+If you want to run \textit{juliaserver} in a particular environment, it can be
+done by setting the variable JULIA\_PROJECT before juliaserver is run (or you can
+add it to the juliaserver program as an optional parameter):
+
+\begin{lstlisting}
+$ export JULIA_PROJECT=<dir>
+$ juliaserver  
+\end{lstlisting}
+
+Because the server is responsible of running all Julia code, the client could be
+using another different environments, the only requirement is that the client and
+server should have the same version.
+
+In the case the user want to use several environment, it is also possible to run
+the daemon with different ports. In this case, each client should use a
+different port.
+
+\subsection{Parallelism usage}
 \label{sec:parallel}
 
-\section{Technical details}
-\label{sec:technicals}
+In previous versions, the server run one task for each client. However, since
+version 0.1.5 DaemonMode is able to run each client in parallel. However, you can run
+the server function with the parameter \textit{async=false} to have the previous
+behavior. In all following examples, I use \textit{-t auto} to allow julia to use
+different CPUs.
+
+\begin{lstlisting}
+$ julia -e 'using DaemonMode; serve(async=false)'
+\end{lstlisting}
+
+In that way, the juliaserver works with in a only CPU, and only one client is
+running at the same time.
+
+The recommended way of running is always using \textit{-t auto}.
+
+\begin{lstlisting}
+$ julia -t auto -e 'using DaemonMode; serve(async=false)'
+\end{lstlisting}
+
+In that way, each client could use different CPUs, but only each client is
+running at the same time. However, the current client can run different threads.
+
+With the optional parameter async=true, the server run each client in
+a new task, but only using a CPU.
+
+\begin{lstlisting}
+julia> serve(async=true, threaded=false)
+\end{lstlisting}
+
+That command will allow to run different clients in parallel. It is using
+several threads in parallel by default. If you want to run different clients in
+parallel but always at the same CPU (pure async mode), you can do:
+
+\begin{lstlisting}
+julia> serve(async=true, threaded=false)
+\end{lstlisting}
+
+Auto allows DaemonMode to use all processors of the computer, but you can put
+\textit{-t 1}, \textit{-t 2}, ... It is the default mode.
+
+
+The parallel option have several advantages:
+
+- You can run any new client without waiting for the previous one to end.
+
+- If one process ask for close the daemon, it will wait until all clients have
+  been finished.
+  
+- With several threads (threaded instead of async), you can run several clients in
+  different CPUs, without increasing the time for each client. If there is only
+  one process, the processing time will be divided between the different
+  clients.
+ 
+The main drawback is that the @show and logs in console can be send to the last task.
+
+\subsection{Management Error}
+
+This package allows users to run its source code a lot faster. You could
+have doubts about the limitations of running a script through DaemonMode,
+specially if the scripts contains errors.
+However, DaemonMode has been designed to be useful to run even scripts in development.
+
+Current version of daemon can show the Error Stack in a very similar way than
+using directly julia. 
+
+- Colors: The message error is remarked using
+\href{https://github.com/KristofferC/Crayons.jl}{Crayons.jl}. 
+
+- Number of calls: The calls due to DaemonMode are hidden, to improve  the readibility.
+
+For instance, for the program:
+
+\begin{lstlisting}
+function fun2(a)
+  println(a+b)
+end
+
+function fun1()
+  fun2(4)
+end
+
+fun1()
+\end{lstlisting}
+
+The output obtained is as expected:
+
+\begin{lstlisting}
+$ jclient bad.jl
+ERROR: LoadError: UndefVarError: b not defined
+Stacktrace:
+  [1] fun2 at .../bad.jl:2
+  [2] fun1 at .../bad.jl:6
+  [3] top-level scope at .../bad.jl:9 
+\end{lstlisting}
+
+\subsection{Logging output}
+
+The script can use Logging. There are two situations:
+
+- The messages are written to a external file. 
+
+- The messages are written to console. 
+
+Both situations are working nicely. For instance, for the following  file:
+
+\begin{lstlisting}
+using  Logging
+
+function msg()
+  @warn "warning 1\nanother line\nlast one"
+  @error "error 1"
+  @info "info 1"
+  @debug "debug 1"
+end
+
+msg()
+\end{lstlisting}
+
+The output is nice:
+\begin{lstlisting}
+$ jclient test_log1.jl
+  ┌ Warning: warning 1
+  │ another line
+  │ last one
+  └ @ Main /.../test_log1.jl: 4
+  ┌ Error: error 1
+  └ @ Main /.../test_log1.jl: 5
+  ┌ Info: info 1
+  └ @ Main /.../test_log1.jl: 6
+\end{lstlisting}
+
+\subsection{Binary clients}
+\label{sec:jclient}
+
+DaemonMode implements both the serve part and the client part. However, because
+all processing in the julia code is done by the server, and all communication
+between client and server is done using normal sockets, it is possible to
+implements the client in a different language. 
+
+This is specially interesting because running any julia program implies a time for
+starting the virtual machine. However, a binary version of the client could not
+have this delay, obtaining all the advantages of programming in Julia.
+
+As a prove of concept, it was implemented a client in the programming language
+Nim\footnote{\url{https://nim-lang.org/}}. Nim was selected because it was easy
+to implement it, but also because it produce small and quick binary programs.
+
+The implementation is freely available at
+\url{https://github.com/dmolina/juliaclient_nim}, it is only 69 lines and it is
+very simple to understand. However, users could implement its own version of
+julia client, if they wanted, using their favorite programming language. 
+
+In next section, we are going to measure the performance with the Julia client
+and with the binary client previously mentioned.
 
 \section{Measure of the performance}
 \label{sec:performance}
 
+In order to prove the convenience of the usage of this package, we are going to
+show the performance that it allows with several examples.
+
+All experimental times  were obtained using Julia 1.5.1, with Linux Ubuntu
+20.04, and in a computer with 2 CPUs Intel(R) Core(TM) i5-6200U CPU @ 2.30GHz
+(using hyper-threading) with 8GB of memory. The version of DaemonMode is v0.1.7.
+
+All the programs used in the comparison are available in the package, in the
+\textit{test/} directory, and there are shown in Figures
+\ref{fig:source_code}. We have selected a group of program representing each one
+a different category of program:
+
+\begin{description}
+\item[hello] simple hello program, very fast, without external packages. 
+\item[slow] program with a lot of processing time, without external packages.
+\item[long] program with output and sleep.
+\item[DS] program using external packages (CSV and DataFrame).
+
+\end{description}
+
+\begin{figure}[htp]
+  \centering
+  \begin{subfigure}[a]{\linewidth}
+    \lstinputlisting{../test/hello.jl}
+    \caption{\textbf{hello} program}
+  \end{subfigure}
+  \begin{subfigure}[b]{\linewidth}
+    \lstinputlisting{../test/slow.jl}
+    \caption{\textbf{slow} program}
+  \end{subfigure}
+  \begin{subfigure}[c]{\linewidth}
+    \lstinputlisting{../test/long.jl}
+    \caption{\textbf{long} program, with several output and sleep}
+  \end{subfigure}
+  \begin{subfigure}[d]{\linewidth}
+    \lstinputlisting{../test/DS.jl}
+    \caption{\textbf{DS} program, using CSV and DataFrames\vspace{1em}}
+  \end{subfigure}
+  \caption{Source code of programs used in Section \ref{sec:performance}}
+  \label{fig:source_code}
+\end{figure}
+
+
+\begin{table}[htp]
+  \centering
+  \begin{tabular}{l*{4}{r}}
+    \toprule
+    Method & \multicolumn{1}{c}{\textbf{hello}} & \multicolumn{1}{c}{\textbf{slow}} & \multicolumn{1}{c}{\textbf{long}} & \multicolumn{1}{c}{\textbf{DS}}\\
+    \midrule
+    Julia & 0.1486 & 6.5525 &  4.3084 & 20.7313\\
+    Julia Client (First) & 0.6464 & 7.0144 & 4.5462 & 19.9024\\
+    Julia Client (Next) & 0.4444 & 6.7716 & 4.4853  & 0.4426\\
+    Binary Client (First) & 0.2323 & 6.5600 & 4.4720 & 19.7768\\
+    Binary Client (Next) & \textbf{0.0283} & \textbf{6.2350} & \textbf{4.2277} & \textbf{0.0430}\\
+    \bottomrule
+  \end{tabular}
+  \caption{Processing time (in seconds) for each problem}
+  \label{tab:times}
+\end{table}
+
+Table \ref{tab:times} shows the results of each one of them, using the command
+time in bash 5 times and obtaining the mean. It is measured in that way to show
+the perceived time of the user. \textit{Client (first)} implies that the client is just
+run after the daemon server is initialised. \textit{Client (next)} implies that
+the client is run again with the same process.
+
+From Table \ref{tab:times} we can observe several important conclusions that we
+describe in the following paragraphs:
+
+For programs that load several external packages, like \textbf{DS}, the obtained
+improvement is the maximum, thus this is the case in which the scripts benefit
+the most. In our example, the time is reduced from 20 seconds to less than 1,
+obtaining an final time of 2.1\% of initial time.
+  
+For programs that implies a lot of computing and/or I/O, like \textbf{slow} or
+\textbf{long}, the DaemonMode cannot improve it, but the application of
+DaemonMode is very similar in time, including the first time. 
+ 
+For very simple programs, the DaemonMode cannot improve them, but the
+possibility of using a binary client improve them, because it is not require the
+load of the Julia interpreter.
+
+There is between 0.2 and 0.3 seconds that are due to the load of the Julia
+interpret, so the binary client permits user to avoid that time. 
+
+To summarize, for programs in which the load of external packages can be a
+significant ratio of the time, it is very convenient to use DaemonMode. This is
+specially important in scripts using external packages.
+
+\section{Technical details}
+\label{sec:details}
+
+The development of this packages have presented several technical difficulties.
+In this section we are going to briefly describe how we have been able overcome
+them. For more details, you can consult the source code of the package.
+
+\subsection{Communication}
+
+The communication between the client and the server is done through standard
+sockets. For file, it is sent from socket the filename and directory, and
+arguments.  For expression, it is sent the expression and directory.
+
+After the client sends these data, it submits a token indicating end of the
+information, then the client is reading from the same socket until a special
+token is received (end\_ok\_token  or error\_ok\_token) and until that all
+information received by it, it is send to output.
+
+Finally, it is return a 0 value if the final code was end\_ok\_token or 1 if the
+final token received was end\_error\_token (the last token is sent if an
+exception occurs or it is called the function exit with value different of zero).
+
+\subsection{Running an expression or file in Julia}
+
+The first problem was how to run the source code or file content. The process to
+run them is very similar, using the \textit{include\_string} function.
+
+For file, it is received from socket the filename and directory, and arguments. Then, it is
+goes to the directory, load the content and call serverRun to run it:
+
+\begin{lstlisting}
+cd(dir) do
+  content = read(fname, String)
+  serverRun(sock, shared, print_stack, fname, args) 
+                                             do mod
+      include_string(mod, content)
+  end
+end
+\end{lstlisting}
+
+When serverRun contains the code described in following Section.
+
+For expression, it is received from socket the expression and directory. Then, it is
+goes to the directory, load the content and call serverRun to run it:
+
+\begin{lstlisting}
+expr = readuntil(sock, token_end)
+
+cd(dir) do
+  serverRun(sock, shared, print_stack, "",  String[]) 
+                                            do mod
+  include_string(mod, strip(expr))
+end
+\end{lstlisting}
+
+The function calling include\_string is called \textit{run} in next subsection.
+
+fname is used for error in Error Backtrace, and shared indicate if the source
+code should be run as code in the same context (useful for expressions), or as an
+independent code. 
+
+\subsection{Conflict of names}
+
+The main problem designing the package was to avoid the conflict of names. This
+appears when in one file is defined an element with the same name than a constant
+data, functions or constants, in other file. For instance:
+
+\lstinputlisting{../test/conflict1.jl}
+\lstinputlisting{../test/conflict2.jl}
+
+The solution to that problem was to run each function in its own module, because
+each module has its own namespace. This is only done when shared=false (because
+usually in expression, it could be wanted to share the same domain for all code).
+
+\begin{lstlisting}
+if shared
+   run(Main)
+else begin
+   m = Module()
+   ...
+   run(m)
+end
+\end{lstlisting}
+
+Also, in order to work when there are other files included inside the scripts,
+it was needed to add a local function include.
+
+\begin{lstlisting}
+  add_include = Meta.parse("""
+include(arg)=Base.include(@__MODULE__,arg)
+""")
+Base.eval(m, add_include)
+\end{lstlisting}
+
+\subsection{Parallelism}
+
+Using parallelism to allow the package running several clients at the same time was
+simpler  than expected. 
+
+\begin{lstlisting}
+tasks = Task[]
+
+while continue_server[] && isopen(server)
+  sock = accept(server)
+
+  if threaded
+      task = Threads.@spawn begin
+          process(sock, ...)
+      end
+
+      push!(tasks, task)
+  else
+      ...    
+  end
+
+end
+\end{lstlisting}
+
+The list of tasks is used to wait that all  tasks were completed before the
+server is closed:
+
+\begin{lstlisting}
+# wait all pending tasks
+for task in tasks
+     ...
+     wait(task)
+     ...
+end
+\end{lstlisting}
+
+\subsection{Redirect output}
+\label{sec:output}
+
+The redirection of the output  is mainly done using the functions
+\textit{redirect\_stdout} and \textit{redirect\_stderr}:
+
+\begin{lstlisting}
+  redirect_stdout(sock) do
+      redirect_stderr(sock) do
+           m = Module()
+           ...
+           run(m)
+           ...
+      end
+end
+\end{lstlisting}
+
+However, the previous approach is not working in parallel, because \textit{redirect\_*}
+functions work using global variable, and it is not secure with threads. In that
+case, all the output was sent to the last client to start running. 
+
+In order to fix it, the redirect is done also manually creating two IOBuffer(), one
+for standard output and another for standard error. Then, an async task is
+continuously reading from them and sending to the socket.
+
+\begin{lstlisting}
+
+  add_redirect_out = Meta.parse("""
+const stdout=IOBuffer();
+println(x)=Base.println(stdout, x);
+...
+stdout""")
+  out = Base.eval(m, add_redirect)
+  add_redirect_err = Meta.parse("""
+const stderr=IOBuffer(); stderr
+""")
+  err = Base.eval(m, add_redirect_err)
+
+  task_out = @async begin
+      while isopen(out) && isopen(sock)
+          text = String(take!(out))
+          print(sock, text)
+          ...
+      end
+  end
+  ...
+\end{lstlisting}
+
+\subsection{Management of errors}
+
+It is very usual to have errors in the client files. Thus, the behavior of the
+server must be robust, and continue working even in the case any code was not
+right. It order to do it, not only all exceptions should be caught, but also 
+the error messages should be easy to understand.
+
+In order to do that, we have applied LoggingExtras package (in particular,
+function FormatLogger) to be able to manipulate the Exception information, and
+customizing the stack that is shown to the client, mainly removing the
+DaemonMode in the stack. The idea was to send to user the same information in
+case of error than when julia was used directly.
+
+
+\subsection{Function exit in client}
+
+One asked feature was that the client could call the function \textit{exit}.
+Initially, when the server run it, it was the own server which was closed. This
+is not acceptable because, as we have said previously, the server  must be
+robust.
+
+In order to fix it, we  have define in the module our function exit, that return
+an particular exception. 
+
+\begin{lstlisting}
+add_exit = Meta.parse("""
+struct SystemExit <: Exception code::Int32 end 
+exit(x)=throw(SystemExit(x))""")
+Base.eval(m, add_exit)
+\end{lstlisting}
+
+Later, when the exception is caught, it is checked if the exception is
+SystemExit or another. When it is SystemExit the code obtained is returned, and in
+the other case the exception is thrown again (function \textit{rethrow}).
 
 \section{Conclusions}
 \label{sec:conclusions}
 
+Julia is an expressive language designed for creating highly-performance
+software without having to use another language. Unfortunately, due to the JIT
+compiler, loading packages can be very time consuming, making Julia not adequate
+for small scripts using external packages.
+
+Package DaemonMode allow users running easily scripts using a dedicate server to run the
+code, and a client that sent the file to run to that process. In that way,
+each package is only loaded once for all scripts, reducing the time to run them.
+
+The experimental section have proven that it is specially useful in scripts that
+use popular external packages (like CSV or DataFrames). In that cases, the
+processing time can be reduced from many seconds to less than one second (with a
+2\% of total time in scripts). Also, it is possible to use a binary client, avoiding the
+delay due to loading the Julia interpreter, making possible to improve even the
+simpler scripts.
+
+The current package, although it uses sockets, is designed to have server and
+client in the same computer. It is contemplated as future works to make a remote
+version, allowing to use a server in a remote computer (as a computational
+server or cluster) running programs edited locally.
 
 \input{bib.tex}
 
