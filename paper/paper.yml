@@ -1,0 +1,18 @@
+title: "Running faster scripts with DaemonMode.jl"
+keywords:
+  - Julia
+  - Optimization
+  - Tool
+  - Script
+  - Time-to-first plot
+authors:
+  - name: Daniel Molina
+    orcid: 0000-0002-4175-2204
+    affiliation: 1, 2
+affiliations:
+  - name: DaSCI Andalusian Institute of Data Science and Computational Intelligence, Spain
+    index: 1
+  - name: Department of Computer Science, University of Granada, Spain
+    index: 2
+date: 30 March 2021
+bibliography: ref.bib
