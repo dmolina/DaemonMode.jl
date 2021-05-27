@@ -319,17 +319,24 @@ function serverRun(run, sock, shared, print_stack, fname, args)
                             rethrow(e)
                         end
                     end
-                    # If there is missing message I write it
-                    text = String(take!(out))
+                    try
+                        # If there is missing message I write it
+                        text = String(take!(out))
 
-                    if !isempty(text)
-                        print(sock, text)
+                        if !isempty(text)
+                            print(sock, text)
+                        end
+                    # Ignore possible error in output by finishing
+                    catch e
                     end
-                    # If # TODO: here is missing message I write it
-                    text = String(take!(err))
+                    try
+                        text = String(take!(err))
 
-                    if !isempty(text)
-                        print(sock, text)
+                        if !isempty(text)
+                            print(sock, text)
+                        end
+                    # Ignore possible error in error by finishing
+                    catch e
                     end
                 end
             end
