@@ -187,9 +187,9 @@ sys	0m0.300s
 
 - [X] Fix redirect with several tasks.
 
-# TODO (features in the roadmap)
+- [X] Update isinteractive() to show that the run is run in a interactive way.
 
-- [ ] Update isinteractive() to show that the run is run in a interactive way.
+# TODO (features in the roadmap)
 
 - [ ] Remote version (in which the Server would be in a different computer of the client).
 

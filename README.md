@@ -272,11 +272,9 @@ The main drawback is that the @show and logs in console can be send to the last 
 
 - [X] Allow to use function exit in client.
 
+- [X] Update isinteractive() to show that the run is run in a interactive way.
 
 # TODO
-
-
-- [ ] Update isinteractive() to show that the run is run in a interactive way.
 
 - [ ] Remote version (in which the Server would be in a different computer of the client).
 
