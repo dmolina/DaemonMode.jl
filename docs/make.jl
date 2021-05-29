@@ -15,7 +15,8 @@ makedocs(;
         "Quick Start" => "index.md",
         "User Guide" => "guide.md",
         "Posibilities" => "posibilities.md",
-        "Public API" => "reference.md"
+        "with PackageCompiler" => "compiler.md",
+        "Public API" => "reference.md",
     ],
 )
 
