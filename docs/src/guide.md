@@ -300,3 +300,24 @@ end
 Remember that the current directory is the directory in which julia command is
 run, so it is recommended to run in the same directory that the script with the include.
 
+# Automatically reload the modified packages
+
+DaemonMode would execute the codes that are directly passed
+to the server, so each time the codes are updated, you would
+get the up-to-date results. However, sometimes you may also
+be developing some packages in the same time, and want they
+got reloaded when modified. You can use Revise together with
+DaemonMode for this purpose.
+
+- First, you need to load Revise at the server:
+
+```julia
+julia --startup-file=no -e 'using Revise; using DaemonMode; serve()'
+```
+
+- Then, you need to notify Revise before sending the codes
+  at the client:
+
+```julia
+julia --startup-file=no -e "using DaemonMode; runexpr(\"using Revise; Revise.revise()\"); runargs()" program.jl <arguments>
+```
