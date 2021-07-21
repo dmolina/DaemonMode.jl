@@ -245,6 +245,27 @@ The async mode have several advantages:
  
 The main drawback is that the @show and logs in console can be send to the last task.
 
+# Automatically reload the modified packages
+
+DaemonMode would execute the codes that are directly passed
+to the server, so each time the codes are updated, you would
+get the up-to-date results. However, sometimes you may also
+be developing some packages in the same time, and want they
+got reloaded when modified. You can use Revise together with
+DaemonMode for this purpose.
+
+- First, you need to load Revise at the server:
+
+```julia
+julia --startup-file=no -e 'using Revise; using DaemonMode; serve()'
+```
+
+- Then, you need to notify Revise before sending the codes
+  at the client:
+
+```julia
+julia --startup-file=no -e "using DaemonMode; runexpr(\"using Revise; Revise.revise()\"); runargs()" program.jl <arguments>
+```
 
 # Features
 
