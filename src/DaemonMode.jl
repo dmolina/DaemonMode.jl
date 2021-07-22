@@ -14,6 +14,9 @@ const PORT = 3000
 function add_packages(fname::AbstractString)
 end
 
+function noreviser()
+end
+
 const first_time = Ref(true)
 const token_runfile = "DaemonMode::runfile"
 const token_runexpr = "DaemonMode::runexpr"
@@ -45,23 +48,27 @@ function serve(port=PORT, shared=missing; print_stack=true, async=true, threaded
     if isnothing(threaded)
         threaded = async
     end
-
-    if (async)
-        return serve_async(port, shared, print_stack=print_stack, threaded=threaded)
+    if isdefined(Main, :Revise) && Main.Revise isa Module && isdefined(Main.Revise, :revise) && Main.Revise.revise isa Function
+        reviser = Main.Revise.revise
     else
-        return serve_sync(port, shared; print_stack=print_stack)
+        reviser = noreviser
+    end
+    if (async)
+        return serve_async(port, shared, reviser, print_stack=print_stack, threaded=threaded)
+    else
+        return serve_sync(port, shared, reviser; print_stack=print_stack)
     end
 
 end
 
-function async_process(sock, shared, print_stack, continue_server)
+function async_process(sock, shared, print_stack, continue_server, reviser)
     local mode
     mode = readline(sock)
 
     if mode == token_runfile
-        serverRunFile(sock, coalesce(shared, false), print_stack)
+        serverRunFile(sock, coalesce(shared, false), print_stack, reviser)
     elseif mode == token_runexpr
-        serverRunExpr(sock, coalesce(shared, true), print_stack)
+        serverRunExpr(sock, coalesce(shared, true), print_stack, reviser)
     elseif mode == token_client_end
         println(sock, token_server_async_end)
         continue_server[] = false
@@ -71,7 +78,7 @@ function async_process(sock, shared, print_stack, continue_server)
     end
 end
 
-function serve_async(port=PORT, shared=missing; print_stack=true, nicely=true, threaded::Bool)
+function serve_async(port=PORT, shared=missing, reviser=noreviser; print_stack=true, nicely=true, threaded::Bool)
     server = Sockets.listen(Sockets.localhost, port)
     current = pwd()
     continue_server = Threads.Atomic{Bool}(true)
@@ -82,11 +89,11 @@ function serve_async(port=PORT, shared=missing; print_stack=true, nicely=true, t
 
         if threaded
             task = Threads.@spawn begin
-                async_process(sock, shared, print_stack, continue_server)
+                async_process(sock, shared, print_stack, continue_server, reviser)
             end
         else
             task = @async begin
-                async_process(sock, shared, print_stack, continue_server)
+                async_process(sock, shared, print_stack, continue_server, reviser)
             end
         end
 
@@ -106,7 +113,7 @@ function serve_async(port=PORT, shared=missing; print_stack=true, nicely=true, t
     close(server)
 end
 
-function serve_sync(port=PORT, shared=missing; print_stack=true)
+function serve_sync(port=PORT, shared=missing, reviser=noreviser; print_stack=true)
     server = Sockets.listen(Sockets.localhost, port)
     current = pwd()
     continue_server = true
@@ -116,9 +123,9 @@ function serve_sync(port=PORT, shared=missing; print_stack=true)
         mode = readline(sock)
 
         if mode == token_runfile
-            serverRunFile(sock, coalesce(shared, false), print_stack)
+            serverRunFile(sock, coalesce(shared, false), print_stack, reviser)
         elseif mode == token_runexpr
-            serverRunExpr(sock, coalesce(shared, true), print_stack)
+            serverRunExpr(sock, coalesce(shared, true), print_stack, reviser)
         elseif mode == token_client_end
             println(sock, token_server_sync_end)
             continue_server = false
@@ -240,10 +247,12 @@ function create_mylog(fname)
     end
 end
 
-function serverRun(run, sock, shared, print_stack, fname, args)
+function serverRun(run, sock, shared, print_stack, fname, args, reviser)
     error = false
 
     try
+        reviser()
+       
         if shared
             redirect_stdout(sock) do
                 redirect_stderr(sock) do
@@ -371,7 +380,7 @@ Run the source code of the filename push through the socket.
 - shared: Share the environment between calls. If it is false (default) each run
 has its own environment, so the variables/functions are not shared.
 """ 
-function serverRunFile(sock, shared, print_stack)
+function serverRunFile(sock, shared, print_stack, reviser)
     fname = ""
 
     try
@@ -395,7 +404,7 @@ function serverRunFile(sock, shared, print_stack)
 
         cd(dir) do
             content = read(fname, String)
-            serverRun(sock, shared, print_stack, fname, args) do mod
+            serverRun(sock, shared, print_stack, fname, args, reviser) do mod
                 include_string(mod, content)
             end
         end
@@ -416,14 +425,14 @@ Run the source code of the filename push through the socket.
 - shared: Share the environment between calls. If it is false (default) each run
 has its own environment, so the variables/functions are not shared.
 """
-function serverRunExpr(sock, shared, print_stack)
+function serverRunExpr(sock, shared, print_stack, reviser)
 
     try
         dir = readline(sock)
         expr = readuntil(sock, token_end) # Read until token_end to handle multi-line expressions
 
         cd(dir) do
-            serverRun(sock, shared, print_stack, "",  String[]) do mod
+            serverRun(sock, shared, print_stack, "",  String[], reviser) do mod
                 include_string(mod, strip(expr))
             end
         end
