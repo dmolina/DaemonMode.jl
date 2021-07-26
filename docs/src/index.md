@@ -189,6 +189,8 @@ sys	0m0.300s
 
 - [X] Update isinteractive() to show that the run is run in a interactive way.
 
+- [X] Compatible with Revise.
+
 # TODO (features in the roadmap)
 
 - [ ] Remote version (in which the Server would be in a different computer of the client).
