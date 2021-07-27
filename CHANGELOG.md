@@ -1,13 +1,22 @@
+
 # CHANGELOG
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a
 Changelog](http://keepachangelog.com/).
 
-## 0.1.8 - (2021-05-29)
+## 0.1.9 - (2021-07-27)
+---
 
 ### New
 
+* Allow reload packages with Revise (thanks to Suenhoy https://github.com/Shuenhoy).
+
+
+## 0.1.8 - (2021-05-29)
+---
+
+### New
 * Improve documentation with PackageCompiler.
 
 ### Fixes
@@ -16,7 +25,7 @@ Changelog](http://keepachangelog.com/).
 ## 0.1.7 - (2021-03-23)
 ---
 
-### News
+### New
 * Add option threaded to allow activate or desactivate to use threads with async.
 * The function exit() can be used inside the client.
 
@@ -45,7 +54,7 @@ Changelog](http://keepachangelog.com/).
 
 * Fix error with ARGS.
 
-### News
+### New
 
 * Multi-task version.
 
