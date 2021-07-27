@@ -5,6 +5,12 @@
 [![Documentation](https://github.com/dmolina/DaemonMode.jl/workflows/Documentation/badge.svg)](https://dmolina.github.io/DaemonMode.jl/dev/)
 [![DOI](https://zenodo.org/badge/276341198.svg)](https://zenodo.org/badge/latestdoi/276341198)
 
+# Presented in JuliaCon 2021
+
+I am going to talk about the package and its advantages in the JuliaCon 2021 in the
+[Talk in JuliaCon 2021](https://pretalx.com/juliacon2021/talk/KJNRGA/), do not miss it!
+
+
 # Introduction
 
 Julia is a great language, but the Just-in-Time compiler implies that loading a package could takes a considerable time, this is called the _first plot problem_.
@@ -17,8 +23,7 @@ faster, because the package is maintained in memory between the runs of (to run
 the same script several times).
 
 
-
-!! This package has been mentioned in JuliaCon 2020, Thank you, Fredrik Ekre!
+This package has been mentioned in JuliaCon 2020, Thank you, Fredrik Ekre!
 
 [![DaemonMode in JuliaCon](https://dmolina.github.io/DaemonMode.jl/dev/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
 
