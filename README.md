@@ -5,19 +5,6 @@
 [![Documentation](https://github.com/dmolina/DaemonMode.jl/workflows/Documentation/badge.svg)](https://dmolina.github.io/DaemonMode.jl/dev/)
 [![DOI](https://zenodo.org/badge/276341198.svg)](https://zenodo.org/badge/latestdoi/276341198)
 
-# Introduced in JuliaCon 2020
-
-This package has been mentioned in JuliaCon 2020, Thank you, Fredrik Ekre!
-
-[![DaemonMode in JuliaCon](https://dmolina.github.io/DaemonMode.jl/dev/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
-
-# Presented in JuliaCon 2021
-
-I gave a talk *Faster scripts in Julia with DaemonMode.jl*
-about the package and its advantages in the JuliaCon 2021 in the [Talk in
-JuliaCon 2021](https://pretalx.com/juliacon2021/talk/KJNRGA/). Now it is online at:
-[![Faster scripts in Julia with DaemonMode.jl](https://dmolina.github.io/DaemonMode.jl/dev/assets/juliacon.png)](https://www.youtube.com/watch?v=wCkuXAdE8E0).
-
 
 # Introduction
 
@@ -29,6 +16,19 @@ This package solves that problem. Inspired by the daemon-mode of Emacs, this
 package uses a server/client model. This allows julia to run scripts a lot
 faster, because the package is maintained in memory between the runs of (to run
 the same script several times).
+
+# Introduced in JuliaCon 2020
+
+This package has been mentioned in JuliaCon 2020, Thank you, Fredrik Ekre!
+
+[![DaemonMode in JuliaCon](https://dmolina.github.io/DaemonMode.jl/dev/assets/juliacon.png)](https://www.youtube.com/watch?v=IuwxE3m0_QQ)
+
+# Presented in JuliaCon 2021
+
+I gave a talk *Faster scripts in Julia with DaemonMode.jl*
+about the package and its advantages in the JuliaCon 2021 in the [Talk in
+JuliaCon 2021](https://pretalx.com/juliacon2021/talk/KJNRGA/). Now it is online at:
+[![Faster scripts in Julia with DaemonMode.jl](https://dmolina.github.io/DaemonMode.jl/dev/assets/juliacon2021.png)](https://www.youtube.com/watch?v=wCkuXAdE8E0).
 
 # Usage
 
