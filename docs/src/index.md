@@ -193,6 +193,8 @@ sys	0m0.300s
 
 # TODO (features in the roadmap)
 
+- [ ] Automatically detect if the daemon is previously run to simplify its usage.
+      
 - [ ] Remote version (in which the Server would be in a different computer of the client).
 
 - [ ] Automatic installation of required packages.

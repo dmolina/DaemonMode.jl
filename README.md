@@ -299,7 +299,10 @@ julia --startup-file=no -e 'using Revise; using DaemonMode; serve()'
 
 - [X] Compatible with Revise.
 
+
 # TODO
+
+- [ ] Automatically detect if the daemon is previously run to simplify its usage.
 
 - [ ] Remote version (in which the Server would be in a different computer of the client).
 
