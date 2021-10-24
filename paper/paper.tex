@@ -360,9 +360,9 @@ and with the binary client previously mentioned.
 In order to prove the convenience of the usage of this package, we are going to
 show the performance that it allows with several examples.
 
-All experimental times  were obtained using Julia 1.5.1, with Linux Ubuntu
+All experimental times  were obtained using Julia 1.6.1, with Linux Ubuntu
 20.04, and in a computer with 2 CPUs Intel(R) Core(TM) i5-6200U CPU @ 2.30GHz
-(using hyper-threading) with 8GB of memory. The version of DaemonMode is v0.1.7.
+(using hyper-threading) with 8GB of memory. The version of DaemonMode is v0.1.9.
 
 All the programs used in the comparison are available in the package, in the
 \textit{test/} directory, and there are shown in Figures
@@ -406,11 +406,11 @@ a different category of program:
     \toprule
     Method & \multicolumn{1}{c}{\textbf{hello}} & \multicolumn{1}{c}{\textbf{slow}} & \multicolumn{1}{c}{\textbf{long}} & \multicolumn{1}{c}{\textbf{DS}}\\
     \midrule
-    Julia & 0.1486 & 6.5525 &  4.3084 & 20.7313\\
-    Julia Client (First) & 0.6464 & 7.0144 & 4.5462 & 19.9024\\
-    Julia Client (Next) & 0.4444 & 6.7716 & 4.4853  & 0.4426\\
-    Binary Client (First) & 0.2323 & 6.5600 & 4.4720 & 19.7768\\
-    Binary Client (Next) & \textbf{0.0283} & \textbf{6.2350} & \textbf{4.2277} & \textbf{0.0430}\\
+    Julia & 0.1592 & 6.8312 &  4.1694 & 16.4286\\
+    Julia Client (First) & 0.6886 & 7.9260 & 4.5462 & 16.2308\\
+    Julia Client (Next) & 0.6682 & 7.1680 & 4.4853  & 0.6902\\
+    Binary Client (First) & 0.5982 & 7.3196 & 4.4720 & 15.4728\\
+    Binary Client (Next) & \textbf{0.0130} & \textbf{6.5080} & \textbf{3.5978} & \textbf{0.0410}\\
     \bottomrule
   \end{tabular}
   \caption{Processing time (in seconds) for each problem}
@@ -428,7 +428,7 @@ describe in the following paragraphs:
 
 For programs that load several external packages, like \textbf{DS}, the obtained
 improvement is the maximum, thus this is the case in which the scripts benefit
-the most. In our example, the time is reduced from 20 seconds to less than 1,
+the most. In our example, the time is reduced from 16 seconds to less than 1,
 obtaining an final time of 2.1\% of initial time.
   
 For programs that implies a lot of computing and/or I/O, like \textbf{slow} or
@@ -439,7 +439,7 @@ For very simple programs, the DaemonMode cannot improve them, but the
 possibility of using a binary client improve them, because it is not require the
 load of the Julia interpreter.
 
-There is between 0.2 and 0.3 seconds that are due to the load of the Julia
+There is between 0.6 and 0.7 seconds that are due to the load of the Julia
 interpret, so the binary client permits user to avoid that time. 
 
 To summarize, for programs in which the load of external packages can be a
