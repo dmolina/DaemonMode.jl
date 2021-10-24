@@ -1,6 +1,7 @@
 % JuliaCon proceedings template
 \documentclass{juliacon}
 \usepackage{booktabs}
+\usepackage[utf8]{inputenc}
 \usepackage{subcaption}
 \setcounter{page}{1}
 
@@ -287,9 +288,9 @@ The output obtained is as expected:
 $ jclient bad.jl
 ERROR: LoadError: UndefVarError: b not defined
 Stacktrace:
-  [1] fun2 at .../bad.jl:2
-  [2] fun1 at .../bad.jl:6
-  [3] top-level scope at .../bad.jl:9 
+  [1] fun2 at bad.jl:2
+  [2] fun1 at bad.jl:6
+  [3] top-level scope at bad.jl:9 
 \end{lstlisting}
 
 \subsection{Logging output}
@@ -317,15 +318,16 @@ msg()
 
 The output is nice:
 \begin{lstlisting}
-$ jclient test_log1.jl
-   Warning: warning 1
-   another line
-   last one
-   @ Main /.../test_log1.jl: 4
-   Error: error 1
-   @ Main /.../test_log1.jl: 5
-   Info: info 1
-   @ Main /.../test_log1.jl: 6
+  $ jclient testlog.jl
+  |- Warning: warning 1
+  | another line
+  | last one
+  |- @ Main /.../testlog.jl: 4
+  |- Error: error 1
+  |- @ Main /.../testlog.jl: 5
+  |- Info: info 1
+  |- @ Main /../testlog.jl: 6
+  
 \end{lstlisting}
 
 \subsection{Binary clients}
