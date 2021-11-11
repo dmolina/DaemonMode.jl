@@ -173,5 +173,7 @@ end
     @test code == 1
 end
 
-
-
+@testset "testEval" begin
+    output = test_evalfile("eval.jl", port=3010)
+    @test output == "3\n"
+end
