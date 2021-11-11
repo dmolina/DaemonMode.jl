@@ -1,15 +1,19 @@
-
 # CHANGELOG
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/) and [Keep a
 Changelog](http://keepachangelog.com/).
 
+## 0.1.10 - (2021-11-11)
+---
+
+### New
+* Allow eval function, required for loading several MLJ models.
+
 ## 0.1.9 - (2021-07-27)
 ---
 
 ### New
-
 * Allow reload packages with Revise (thanks to Suenhoy https://github.com/Shuenhoy).
 
 

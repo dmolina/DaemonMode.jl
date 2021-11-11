@@ -299,6 +299,8 @@ julia --startup-file=no -e 'using Revise; using DaemonMode; serve()'
 
 - [X] Compatible with Revise.
 
+- [X] Apply the eval function (required for running MLJ code).
+
 
 # TODO
 
