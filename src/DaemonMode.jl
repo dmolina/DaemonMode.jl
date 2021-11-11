@@ -266,6 +266,8 @@ function serverRun(run, sock, shared, print_stack, fname, args, reviser)
                     Logging.global_logger(MinLevelLogger(FormatLogger(create_mylog(fname), sock), Logging.Info))
                     add_include = Meta.parse("include(arg)=Base.include(@__MODULE__,arg)")
                     Base.eval(m, add_include)
+                    add_eval = Meta.parse("eval(args)=Base.eval(args)")
+                    Base.eval(m, add_eval)
 
                     if !isempty(args)
                         add_params =  Meta.parse(string("ARGS = [\"", join(args, "\",\""), "\"]"))
