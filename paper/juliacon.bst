@@ -15,6 +15,9 @@ ENTRY
     chapter
     edition
     editor
+    eprint
+    eprinttype
+    eprintclass
     howpublished
     institution
     journal
@@ -226,6 +229,33 @@ FUNCTION {format.editors}
       editor num.names$ #1 >
 	{ ", editors" * }
 	{ ", editor" * }
+      if$
+    }
+  if$
+}
+
+FUNCTION {format.eprint}
+{ eprint empty$
+    { "" }
+    { eprinttype empty$
+        { eprintclass empty$
+            { eprint }
+            { eprint " [" * eprintclass * "]" * }
+          if$
+        }
+        { eprinttype "arxiv" =
+            { eprintclass empty$
+                { eprinttype ":" * "\href{http://arxiv.org/abs/" * eprint * "}{" * eprint * "}" * }
+                { eprinttype ":" * "\href{http://arxiv.org/abs/" * eprint * "}{" * eprint * " [" * eprintclass * "]" * "}" * }
+              if$
+            }
+            { eprintclass empty$
+                { eprinttype ":" * eprint * }
+                { eprinttype ":" * eprint * " [" * eprintclass * "]" *}
+              if$
+            }
+            if$
+        }
       if$
     }
   if$
@@ -565,6 +595,8 @@ FUNCTION {article}
   new.block
   output.doi
   new.block
+  format.eprint output
+  new.block
   note output
   fin.entry
 }
@@ -615,6 +647,8 @@ FUNCTION {booklet}
   new.block
   output.doi
   new.block
+  format.eprint output
+  new.block
   note output
   fin.entry
 }
@@ -651,6 +685,8 @@ FUNCTION {inbook}
   new.block
   output.doi
   new.block
+  format.eprint output
+  new.block
   note output
   fin.entry
 }
@@ -678,6 +714,8 @@ FUNCTION {incollection}
   if$
   new.block
   output.doi
+  new.block
+  format.eprint output
   new.block
   note output
   fin.entry
@@ -714,6 +752,8 @@ FUNCTION {inproceedings}
   if$
   new.block
   output.doi
+  new.block
+  format.eprint output
   new.block
   note output
   fin.entry
@@ -753,6 +793,8 @@ FUNCTION {manual}
   new.block
   output.doi
   new.block
+  format.eprint output
+  new.block
   note output
   fin.entry
 }
@@ -770,6 +812,8 @@ FUNCTION {mastersthesis}
   new.block
   output.doi
   new.block
+  format.eprint output
+  new.block
   note output
   fin.entry
 }
@@ -784,6 +828,8 @@ FUNCTION {misc}
   format.date output
   new.block
   output.doi
+  new.block
+  format.eprint output
   new.block
   note output
   fin.entry
@@ -802,6 +848,8 @@ FUNCTION {phdthesis}
   format.date "year" output.check
   new.block
   output.doi
+  new.block
+  format.eprint output
   new.block
   note output
   fin.entry
@@ -840,6 +888,8 @@ FUNCTION {proceedings}
   new.block
   output.doi
   new.block
+  format.eprint output
+  new.block
   note output
   fin.entry
 }
@@ -857,6 +907,8 @@ FUNCTION {techreport}
   new.block
   output.doi
   new.block
+  format.eprint output
+  new.block
   note output
   fin.entry
 }
@@ -868,6 +920,8 @@ FUNCTION {unpublished}
   format.title "title" output.check
   new.block
   output.doi
+  new.block
+  format.eprint output
   new.block
   note "note" output.check
   format.date output
