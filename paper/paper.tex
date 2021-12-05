@@ -513,8 +513,8 @@ The main problem designing the package was to avoid the conflict of names. This
 appears when in one file is defined an element with the same name than a constant
 data, functions or constants, in other file. For instance:
 
-\lstinputlisting{../test/conflict1.jl}
-\lstinputlisting{../test/conflict2.jl}
+\lstinputlisting{conflict1.jl}
+\lstinputlisting{conflict2.jl}
 
 The solution to that problem was to run each function in its own module, because
 each module has its own namespace. This is only done when shared=false (because
