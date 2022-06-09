@@ -1,0 +1,2 @@
+# Exclude paper from linguist
+paper/* linguist-detectable=false
