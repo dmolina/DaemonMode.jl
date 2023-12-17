@@ -249,7 +249,7 @@ end
 
 function serverRun(run, sock, shared, print_stack, fname, args, reviser)
     error = false
-    println("args = $args")
+
     try
         reviser()
        
@@ -429,7 +429,6 @@ function serverRunFile(sock, shared, print_stack, reviser)
         fname = readline(sock)
         args_str = readline(sock)
         args = parse_arguments(args_str)
-        println("parsing args: $args_str => $args")
 
         if !isempty(args) && isempty(args[1])
             empty!(args)
@@ -621,7 +620,7 @@ function runargs(port=PORT)
         println(stderr, "Error: file '$(ARGS[1])' doest not exist")
         exit(1)
     end
-    
+
     result = runfile(ARGS[1], args=ARGS[2:end], port=port)
     exit(result)
 end
