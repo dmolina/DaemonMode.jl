@@ -372,6 +372,45 @@ function serverRun(run, sock, shared, print_stack, fname, args, reviser)
 end
 
 """
+parse_arguments(args_str::String)
+
+Parse the argument string handling quoted arguments, and escaped quotes correctly.
+
+# Parameters
+
+- shared: string of arguments separated by one or many spaces
+""" 
+function parse_arguments(args_str::String)
+    args_out = []
+    quotes = Set(['\'','"'])
+    whitespace = Set([' '])
+    escape_chars = Set(['\\'])
+    in_quote = false
+    escaped = false
+    current = ""
+    for c in collect(args_str)
+        if ~escaped && c in quotes
+            in_quote = ~in_quote
+        elseif c in whitespace
+            if in_quote
+                current = string(current, c)
+            elseif length(current) > 0
+                push!(args_out, current)
+                current = ""
+            end
+        elseif ~(c in escape_chars)
+            current = string(current, c)
+        end
+        escaped = false
+        if c in escape_chars
+            escaped = true
+        end
+    end
+    push!(args_out, current)
+    return args_out
+end
+
+"""
 serverRunFile(sock, shared)
 
 Run the source code of the filename push through the socket.
@@ -389,7 +428,7 @@ function serverRunFile(sock, shared, print_stack, reviser)
         dir = readline(sock)
         fname = readline(sock)
         args_str = readline(sock)
-        args = split(args_str, " ")
+        args = parse_arguments(args_str)
 
         if !isempty(args) && isempty(args[1])
             empty!(args)
@@ -508,7 +547,7 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
         println(sock, token_runfile)
         println(sock, pwd())
         println(sock, fcompletename)
-        println(sock, join(args, " "))
+        println(sock, string("\"", join(args, "\" \""), "\""))
         line = readline(sock)
         token_size = length(token_ok_end)
 
