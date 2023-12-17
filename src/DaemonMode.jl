@@ -249,7 +249,7 @@ end
 
 function serverRun(run, sock, shared, print_stack, fname, args, reviser)
     error = false
-
+    println("args = $args")
     try
         reviser()
        
@@ -429,6 +429,7 @@ function serverRunFile(sock, shared, print_stack, reviser)
         fname = readline(sock)
         args_str = readline(sock)
         args = parse_arguments(args_str)
+        println("parsing args: $args_str => $args")
 
         if !isempty(args) && isempty(args[1])
             empty!(args)
@@ -547,7 +548,7 @@ function runfile(fname::AbstractString; args=String[], port = PORT, output=stdou
         println(sock, token_runfile)
         println(sock, pwd())
         println(sock, fcompletename)
-        println(sock, join(args, " "))
+        println(sock, string("\"", join(args, "\" \""), "\""))
         line = readline(sock)
         token_size = length(token_ok_end)
 
