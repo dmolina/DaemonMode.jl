@@ -181,6 +181,6 @@ end
 @testset "testCodeloc" begin
     output = test_evalfile("fileandline.jl", port=3011)
     l = split(output)
-    @test endswith(l[1], "/test/fileandline.jl")
+    @test endswith(l[1], joinpath("test", "fileandline.jl"))
     @test l[2] == "7"
 end
