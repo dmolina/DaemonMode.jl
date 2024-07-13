@@ -252,7 +252,7 @@ function serverRun(run, sock, shared, print_stack, fname, args, reviser)
 
     try
         reviser()
-       
+
         if shared
             redirect_stdout(sock) do
                 redirect_stderr(sock) do
@@ -278,8 +278,7 @@ function serverRun(run, sock, shared, print_stack, fname, args, reviser)
                     Base.eval(m, add_params)
                     add_exit = Meta.parse("struct SystemExit <: Exception code::Int32 end; exit(x)=throw(SystemExit(x))")
                     Base.eval(m, add_exit)
-                    # Following code is not needed, the real problem was global ARGS, not
-                    add_redirect = Meta.parse("const stdout=IOBuffer(); println(io, x...) = Base.println(io,x...); println(x)=Base.println(stdout, x); println(x...)=Base.println(stdout, x...); println(io, x...)=Base.println(io, x...); print(x...)=Base.print(stdout, x...); stdout")
+                    add_redirect = Meta.parse("const stdout=IOBuffer(); stdout")
                     out = Base.eval(m, add_redirect)
                     add_redirect_err = Meta.parse("const stderr=IOBuffer(); stderr")
                     err = Base.eval(m, add_redirect_err)
@@ -379,7 +378,7 @@ Parse the argument string handling quoted arguments, and escaped quotes correctl
 # Parameters
 
 - shared: string of arguments separated by one or many spaces
-""" 
+"""
 function parse_arguments(args_str::String)
     args_out = []
     quotes = Set(['\'','"'])
@@ -420,7 +419,7 @@ Run the source code of the filename push through the socket.
 - sock: socket in which is going to receive the dir, the filename, and args to run.
 - shared: Share the environment between calls. If it is false (default) each run
 has its own environment, so the variables/functions are not shared.
-""" 
+"""
 function serverRunFile(sock, shared, print_stack, reviser)
     fname = ""
 
@@ -444,9 +443,8 @@ function serverRunFile(sock, shared, print_stack, reviser)
         first_time[] = true
 
         cd(dir) do
-            content = read(fname, String)
             serverRun(sock, shared, print_stack, fname, args, reviser) do mod
-                include_string(mod, content)
+                Base.include(mod, fname)
             end
         end
     catch e

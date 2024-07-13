@@ -90,13 +90,13 @@ end
     output = String(take!(buffer))
     @test output == "1\n2\n"
 
-    expr = "begin 
+    expr = "begin
         x = 2
         for i = 1:2
             println(i)
         end
     end
-    
+
     "
 
     runexpr(expr, output=buffer, port=port)
@@ -176,4 +176,11 @@ end
 @testset "testEval" begin
     output = test_evalfile("eval.jl", port=3010)
     @test output == "3\n"
+end
+
+@testset "testCodeloc" begin
+    output = test_evalfile("fileandline.jl", port=3011)
+    l = split(output)
+    @test endswith(l[1], joinpath("test", "fileandline.jl"))
+    @test l[2] == "7"
 end
