@@ -594,6 +594,7 @@ function sendExitCode(port=PORT)
         # For async it is need to create a new connection
         try
             sock = Sockets.connect(port)
+            println(sock, token_client_end)
         catch e
         end
     end
