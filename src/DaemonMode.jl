@@ -243,7 +243,7 @@ function create_mylog(fname)
             file = joinpath(pwd(), fname)
         end
 
-        println(io, color, "└ ", Crayon(foreground=:dark_gray), "@ ", module_str, " ", file, ": ", args.line)
+        println(io, color, "└ ", Crayon(foreground=:dark_gray), "@ ", module_str, " ", file, ": ", args.line, reset)
     end
 end
 
