@@ -184,3 +184,12 @@ end
     @test endswith(l[1], joinpath("test", "fileandline.jl"))
     @test l[2] == "7"
 end
+
+@testset "test PROGRAM_FILE" begin
+    port = 3012
+    task = init_server(port)
+    eval_expr = ["-e", "using DaemonMode; runargs($port)"]
+    cmd = Cmd([Base.julia_cmd()..., eval_expr..., "program_file.jl"])
+    @test "PROGRAM_FILE: program_file.jl\n" == read(cmd, String)
+    end_server(task, port)
+end

@@ -440,6 +440,8 @@ function serverRunFile(sock, shared, print_stack, reviser)
             push!(ARGS, arg)
         end
 
+        Base.PROGRAM_FILE = fname
+
         first_time[] = true
 
         cd(dir) do
